@@ -1,62 +1,58 @@
 package yancey.openparticle.core.particle;
 
-import com.mojang.logging.LogUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.particle.ParticleTextureSheet;
 import net.minecraft.client.particle.SpriteBillboardParticle;
 import net.minecraft.client.particle.SpriteProvider;
 import net.minecraft.client.world.ClientWorld;
-import org.slf4j.Logger;
-import yancey.openparticle.api.controller.Controller;
-import yancey.openparticle.api.math.Vec3;
-
-import java.awt.*;
+import yancey.openparticle.core.util.Vec3;
 
 @Environment(EnvType.CLIENT)
 public class BetterParticle extends SpriteBillboardParticle {
-
-    private static final Logger LOGGER = LogUtils.getLogger();
     private final SpriteProvider spriteProvider;
-    public Controller controller;
-    private Vec3 posNext;
+    public final Vec3[] positions;
+    public final int[] colors;
 
-    private BetterParticle(ClientWorld world, Vec3 posStart, SpriteProvider spriteProvider, Controller controller) {
+    private BetterParticle(ClientWorld world, Vec3 posStart, Vec3[] positions, int[] colors, SpriteProvider spriteProvider) {
         super(world, posStart.x, posStart.y, posStart.z);
         this.velocityMultiplier = 0.91F;
         this.gravityStrength = 0.0125F;
         this.spriteProvider = spriteProvider;
-        this.controller = controller;
+        this.positions = positions;
+        this.colors = colors;
         updateVelocity();
         updateColor();
         this.scale *= 0.75F;
-        this.maxAge = controller.maxAge;
+        this.maxAge = positions.length;
         this.setSpriteForAge(spriteProvider);
     }
 
-    public static BetterParticle create(ClientWorld world, SpriteProvider spriteProvider, Controller controller) {
-        Vec3 posStart = controller.posGetter.get(0, controller.maxAge);
-        return new BetterParticle(world, posStart, spriteProvider, controller);
+    public static BetterParticle create(ClientWorld world, Vec3[] positions, int[] colors, SpriteProvider spriteProvider) {
+        if (positions.length == 0) {
+            return null;
+        }
+        return new BetterParticle(world, positions[0], positions, colors, spriteProvider);
     }
 
     private void updateColor() {
         if (age >= 0 && age < maxAge) {
-            Color color = controller.colorGetter.get(age, maxAge, new Vec3(x, y, z));
-            this.alpha = color.getAlpha();
-            this.red = color.getRed();
-            this.green = color.getGreen();
-            this.blue = color.getBlue();
+            int color = colors[age];
+            this.alpha = (float) ((color >> 24) & 0xFF) / 255;
+            this.red = (float) ((color >> 16) & 0xFF) / 255;
+            this.green = (float) ((color >> 8) & 0xFF) / 255;
+            this.blue = (float) (color & 0xFF) / 255;
         }
     }
 
     private void updateVelocity() {
         if (this.age >= 0 && this.age + 1 < this.maxAge) {
-            posNext = controller.posGetter.get(age + 1,maxAge);
-            velocityX = posNext.x - x;
-            velocityY = posNext.y - y;
-            velocityZ = posNext.z - z;
+            Vec3 pos = positions[age];
+            Vec3 posNext = positions[age + 1];
+            velocityX = posNext.x - pos.x;
+            velocityY = posNext.y - pos.y;
+            velocityZ = posNext.z - pos.z;
         } else {
-            posNext = null;
             velocityX = 0;
             velocityY = 0;
             velocityZ = 0;
@@ -74,7 +70,7 @@ public class BetterParticle extends SpriteBillboardParticle {
         if (++this.age >= this.maxAge) {
             this.markDead();
         } else {
-            Vec3 pos = posNext;
+            Vec3 pos = positions[age];
             setPos(pos.x, pos.y, pos.z);
             updateVelocity();
             updateColor();

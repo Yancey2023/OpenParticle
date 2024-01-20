@@ -3,15 +3,9 @@ package yancey.openparticle.core.keys;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.Vec3d;
-import org.lwjgl.glfw.GLFW;
-import yancey.openparticle.api.math.Vec3;
 import yancey.openparticle.core.mixin.KeyBindingAccessor;
 import yancey.openparticle.core.network.NetworkHandler;
-import yancey.openparticle.core.util.OpenParticleUtil;
-import yancey.openparticle.test.MyActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,12 +17,15 @@ public class KeyboardManager {
     public static final List<OnKeyPressedListener> onKeyPressedListenerList = new ArrayList<>();
 
     public static void init(boolean isClient) {
-        register(isClient, "run", GLFW.GLFW_KEY_R, false,
-                playerEntity -> {
-                    Vec3d pos = playerEntity.getPos();
-                    OpenParticleUtil.loadAndRum(new Vec3(pos.x, pos.y, pos.z), new MyActivity(), (ClientWorld) playerEntity.getWorld());
-                }
-        );
+//        register(isClient, "run", GLFW.GLFW_KEY_R, true,
+//                playerEntity -> ProjectManager.run((ServerWorld) playerEntity.getWorld())
+//        );
+//        register(isClient, "prepare", GLFW.GLFW_KEY_G, true,
+//                playerEntity -> ProjectManager.prepare((ServerWorld) playerEntity.getWorld())
+//        );
+//        register(isClient, "open_gui", GLFW.GLFW_KEY_M, true,
+//                playerEntity -> ProjectManager.openGui((ServerPlayerEntity) playerEntity)
+//        );
         if (!isClient) {
             return;
         }

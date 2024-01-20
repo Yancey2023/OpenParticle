@@ -1,24 +1,23 @@
 package yancey.openparticle.core.events;
 
-import yancey.openparticle.api.context.Context;
-import yancey.openparticle.api.controller.Controller;
+import net.minecraft.world.World;
 
 public class RunningHandler {
-    public final Context context;
-    public final Controller[] controllers;
+    public final World world;
     public boolean isRunning = false;
+    public final DataRunningPerTick[] dataRunningList;
     private int tick = 0;
     private int which = 0;
 
-    public RunningHandler(Context context, Controller[] controllers) {
-        this.controllers = controllers;
-        this.context = context;
+    public RunningHandler(World world, DataRunningPerTick[] dataRunningList) {
+        this.dataRunningList = dataRunningList;
+        this.world = world;
     }
 
     public void run() {
-        if (controllers != null && controllers.length != 0) {
+        if (dataRunningList != null && dataRunningList.length != 0) {
             isRunning = true;
-            tick = Math.min(controllers[0].getTime(), 0);
+            tick = Math.min(dataRunningList[0].tick, 0);
             which = 0;
             RunningEventManager.INSTANCE.run(this);
         } else if (isRunning) {
@@ -34,16 +33,16 @@ public class RunningHandler {
     }
 
     public void runPerTick() {
-        if (controllers == null) {
+        if (dataRunningList == null) {
             stop();
             return;
         }
-        while (which < controllers.length) {
-            if (tick != controllers[which].getTime()) {
+        while (which < dataRunningList.length) {
+            if (tick != dataRunningList[which].tick) {
                 tick++;
                 return;
             }
-            controllers[which++].run(context);
+            dataRunningList[which++].run(world);
         }
         stop();
     }
