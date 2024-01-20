@@ -12,6 +12,7 @@ import net.minecraft.registry.Registry;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import yancey.openparticle.core.keys.KeyboardManager;
 import yancey.openparticle.core.network.NetworkHandler;
 
 public class OpenParticle implements ModInitializer {
@@ -21,6 +22,7 @@ public class OpenParticle implements ModInitializer {
     @Override
     public void onInitialize() {
         NetworkHandler.initServer();
+        KeyboardManager.init(false);
         Registry.register(Registries.PARTICLE_TYPE, new Identifier(MOD_ID, "better_particle"), FabricParticleTypes.simple());
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             dispatcher.register(
