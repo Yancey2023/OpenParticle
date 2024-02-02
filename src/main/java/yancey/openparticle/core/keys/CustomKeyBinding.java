@@ -17,11 +17,7 @@ public class CustomKeyBinding extends KeyBinding {
     public final OnKeyPressedListener onKeyPressedListener;
 
     public CustomKeyBinding(String description, int keyCode, boolean isRunInServer, OnKeyPressedListener onKeyPressedListener) {
-        super(
-                descriptionFront + description,
-                keyCode,
-                category
-        );
+        super(descriptionFront + description, keyCode, category);
         KeyBindingHelper.registerKeyBinding(this);
         this.isRunInServer = isRunInServer;
         this.onKeyPressedListener = onKeyPressedListener;

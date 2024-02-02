@@ -3,8 +3,6 @@
   "minVersion": "0.8",
   "package": "yancey.openparticle.core.mixin",
   "compatibilityLevel": "JAVA_17",
-  "mixins": [
-  ],
   "client": [
     "KeyBindingAccessor",
     "ParticleManagerAccessor",

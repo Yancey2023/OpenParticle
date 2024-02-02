@@ -3,12 +3,11 @@ package yancey.openparticle.core.keys;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.lwjgl.glfw.GLFW;
+import yancey.openparticle.core.core.OpenParticleCore;
 import yancey.openparticle.core.mixin.KeyBindingAccessor;
 import yancey.openparticle.core.network.NetworkHandler;
-import yancey.openparticle.core.util.OpenParticleUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +19,8 @@ public class KeyboardManager {
     public static final List<OnKeyPressedListener> onKeyPressedListenerList = new ArrayList<>();
 
     public static void init(boolean isClient) {
-        register(isClient, "run", GLFW.GLFW_KEY_V, false,
-                playerEntity -> OpenParticleUtil.run((ClientWorld) playerEntity.getWorld())
+        register(isClient, "run", GLFW.GLFW_KEY_V, true,
+                playerEntity -> OpenParticleCore.run(OpenParticleCore.lastPath, playerEntity.getWorld())
         );
         if (!isClient) {
             return;

@@ -1,15 +1,11 @@
-package yancey.openparticle.core.events;
+package yancey.openparticle.core.core.data;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.particle.ParticleType;
 import net.minecraft.registry.Registries;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
 import yancey.openparticle.core.mixin.ParticleManagerAccessor;
-import yancey.openparticle.core.network.NetworkHandler;
 import yancey.openparticle.core.particle.BetterParticle;
 import yancey.openparticle.core.util.CommonUtil;
 import yancey.openparticle.core.util.IdentifierCache;
@@ -17,7 +13,6 @@ import yancey.openparticle.core.util.Vec3;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.util.Optional;
 
 public class PerParticleState {
 
@@ -60,11 +55,17 @@ public class PerParticleState {
         if (positions.length == 0) {
             return;
         }
-        if (world.isClient) {
-            Optional<RegistryEntry.Reference<ParticleType<?>>> entry = Registries.PARTICLE_TYPE.getEntry(particleTypeRawId);
-            entry.ifPresent(particleTypeReference -> CommonUtil.mc.particleManager.addParticle(BetterParticle.create((ClientWorld) world, positions, colors, ((ParticleManagerAccessor) MinecraftClient.getInstance().particleManager).getSpriteAwareFactories().get(Registries.PARTICLE_TYPE.getId(particleTypeReference.value())))));
-        } else {
-            NetworkHandler.summonParticle((ServerWorld) world, this);
-        }
+//        if (world.isClient) {
+            Registries.PARTICLE_TYPE.getEntry(particleTypeRawId)
+                    .ifPresent(particleTypeReference -> CommonUtil.mc.particleManager.addParticle(BetterParticle.create(
+                            (ClientWorld) world,
+                            positions,
+                            colors,
+                            ((ParticleManagerAccessor) MinecraftClient.getInstance().particleManager)
+                                    .getSpriteAwareFactories().get(Registries.PARTICLE_TYPE.getId(particleTypeReference.value()))
+                    )));
+//        } else {
+//            NetworkHandler.summonParticle((ServerWorld) world, );
+//        }
     }
 }

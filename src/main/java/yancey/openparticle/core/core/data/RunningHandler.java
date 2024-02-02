@@ -1,6 +1,8 @@
-package yancey.openparticle.core.events;
+package yancey.openparticle.core.core.data;
 
 import net.minecraft.world.World;
+import yancey.openparticle.core.core.OpenParticleCore;
+import yancey.openparticle.core.core.events.RunningEventManager;
 
 public class RunningHandler {
     public final World world;
@@ -42,7 +44,7 @@ public class RunningHandler {
                 tick++;
                 return;
             }
-            dataRunningList[which++].run(world);
+            dataRunningList[which++].run(OpenParticleCore.lastPath, world);
         }
         stop();
     }
