@@ -26,9 +26,12 @@ dependencies {
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    // Replay Mod
-    modCompileOnly "maven.modrinth:replaymod:${project.minecraft_version}-${project.replay_mod_version}"
-    modLocalRuntime "maven.modrinth:replaymod:${project.minecraft_version}-${project.replay_mod_version}"
+//    modCompileOnly "maven.modrinth:replaymod:1.20.4-2.6.14"
+//    modLocalRuntime "maven.modrinth:replaymod:1.20.4-2.6.14"
+//    modCompileOnly "maven.modrinth:sodium:mc1.20.4-0.5.8"
+//    modLocalRuntime "maven.modrinth:sodium:mc1.20.4-0.5.8"
+//    modCompileOnly "maven.modrinth:iris:1.6.15+1.20.4"
+//    modLocalRuntime "maven.modrinth:iris:1.6.15+1.20.4"
 }
 
 processResources {

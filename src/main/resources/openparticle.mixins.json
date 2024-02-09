@@ -4,11 +4,16 @@
   "package": "yancey.openparticle.core.mixin",
   "compatibilityLevel": "JAVA_17",
   "client": [
+    "InGameHudMixin",
     "KeyBindingAccessor",
     "ParticleManagerAccessor",
     "ParticleManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "mixins": [
+    "BufferBuilderAccessor",
+    "MinecraftClientAccessor"
+  ]
 }

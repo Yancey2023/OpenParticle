@@ -1,25 +1,20 @@
 package yancey.openparticle.core.util;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
+import java.lang.reflect.Method;
 
 public class CommonUtil {
 
-    @Environment(EnvType.CLIENT)
-    public static final MinecraftClient mc = MinecraftClient.getInstance();
-
-    private CommonUtil() {
+    private static boolean checkIrisOn() {
+        try {
+            Class<?> irisApi = Class.forName("net.irisshaders.iris.api.v0.IrisApi");
+            Method getInstance = irisApi.getMethod("getInstance");
+            getInstance.setAccessible(true);
+            Method isShaderPackInUse = irisApi.getMethod("isShaderPackInUse");
+            isShaderPackInUse.setAccessible(true);
+            return (boolean) isShaderPackInUse.invoke(getInstance.invoke(null));
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
-    @Environment(EnvType.CLIENT)
-    public static void openGui(Screen guiScreen) {
-        mc.execute(() -> mc.setScreen(guiScreen));
-    }
-
-    @Environment(EnvType.CLIENT)
-    public static void closeGui() {
-        mc.execute(() -> mc.setScreen(null));
-    }
 }

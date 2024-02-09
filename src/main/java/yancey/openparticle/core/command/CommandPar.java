@@ -30,29 +30,32 @@ public class CommandPar {
 
     private static <T extends CommandSource> void command(CommandDispatcher<T> dispatcher, boolean isRunInClient) {
         LiteralArgumentBuilder<T> builder = LiteralArgumentBuilder.literal(isRunInClient ? "parc" : "par");
+        if (!isRunInClient) {
+            builder.requires(source -> source.hasPermissionLevel(2));
+        }
         RequiredArgumentBuilder<T, String> path = RequiredArgumentBuilder.argument("path", StringArgumentType.greedyString());
         Function<String, LiteralArgumentBuilder<T>> literal = LiteralArgumentBuilder::literal;
         Function<Identifier, RequiredArgumentBuilder<T, String>> execute = identifier ->
-                path.executes(execute(identifier, isRunInClient));
+                path.executes(executeFile(identifier, isRunInClient));
         dispatcher.register(builder
-                .requires(source -> source.hasPermissionLevel(2))
-                .then(literal.apply("loadAndRun")
-                        .then(execute.apply(NetworkHandler.ID_LOAD_AND_RUN)))
-                .then(literal.apply("load")
-                        .then(execute.apply(NetworkHandler.ID_LOAD)))
-                .then(literal.apply("run")
-                        .executes(execute(NetworkHandler.ID_RUN, isRunInClient)))
-        );
+                .then(literal.apply("file")
+                        .then(literal.apply("loadAndRun")
+                                .then(execute.apply(NetworkHandler.ID_LOAD_AND_RUN)))
+                        .then(literal.apply("load")
+                                .then(execute.apply(NetworkHandler.ID_LOAD)))
+                        .then(literal.apply("run")
+                                .executes(executeFile(NetworkHandler.ID_RUN, isRunInClient)))
+                ));
     }
 
-    private static <T extends CommandSource> Command<T> execute(Identifier identifier, boolean isRunInClient) {
+    private static <T extends CommandSource> Command<T> executeFile(Identifier identifier, boolean isRunInClient) {
         return context -> {
             String path = null;
             if (identifier != NetworkHandler.ID_RUN) {
                 path = StringArgumentType.getString(context, "path");
             }
             World world;
-            T source = context.getSource();
+            CommandSource source = context.getSource();
             if (source instanceof FabricClientCommandSource clientCommandSource) {
                 world = clientCommandSource.getWorld();
             } else if (source instanceof ServerCommandSource serverCommandSource) {

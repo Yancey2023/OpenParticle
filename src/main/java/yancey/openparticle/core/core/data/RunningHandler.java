@@ -1,8 +1,22 @@
 package yancey.openparticle.core.core.data;
 
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.particle.ParticleType;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
+import yancey.openparticle.api.common.controller.SimpleParticleController;
+import yancey.openparticle.api.common.data.DataRunningPerTick;
 import yancey.openparticle.core.core.OpenParticleCore;
-import yancey.openparticle.core.core.events.RunningEventManager;
+import yancey.openparticle.core.events.RunningEventManager;
+import yancey.openparticle.core.mixin.ParticleManagerAccessor;
+import yancey.openparticle.core.network.NetworkHandler;
+import yancey.openparticle.core.particle.BetterParticle;
+
+import java.util.List;
+import java.util.Optional;
 
 public class RunningHandler {
     public final World world;
@@ -44,8 +58,21 @@ public class RunningHandler {
                 tick++;
                 return;
             }
-            dataRunningList[which++].run(OpenParticleCore.lastPath, world);
+            if (world.isClient) {
+                runTick(OpenParticleCore.lastPath, world, dataRunningList[which++].controllerList);
+            } else {
+                which++;
+                NetworkHandler.summonParticle((ServerWorld) world, OpenParticleCore.lastPath, tick);
+            }
         }
         stop();
+    }
+
+    public void runTick(String path, World world, List<SimpleParticleController> controllerList) {
+        for (SimpleParticleController controller : controllerList) {
+            Optional<RegistryEntry.Reference<ParticleType<?>>> entry = Registries.PARTICLE_TYPE.getEntry(controller.getParticleTypeRawId(OpenParticleCore.CORE));
+            entry.ifPresent(particleTypeReference -> MinecraftClient.getInstance().particleManager.addParticle(BetterParticle.create((ClientWorld) world, controller,
+                    ((ParticleManagerAccessor) MinecraftClient.getInstance().particleManager).getSpriteAwareFactories().get(Registries.PARTICLE_TYPE.getId(particleTypeReference.value())))));
+        }
     }
 }

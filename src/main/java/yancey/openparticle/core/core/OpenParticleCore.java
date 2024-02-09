@@ -1,58 +1,56 @@
 package yancey.openparticle.core.core;
 
+import com.mojang.logging.LogUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.world.World;
-import yancey.openparticle.core.client.GuiProgressBar;
-import yancey.openparticle.core.core.data.DataRunningPerTick;
+import org.slf4j.Logger;
+import yancey.openparticle.api.common.OpenParticleAPI;
+import yancey.openparticle.api.common.data.DataRunningPerTick;
 import yancey.openparticle.core.core.data.RunningHandler;
 import yancey.openparticle.core.mixin.ParticleManagerAccessor;
-import yancey.openparticle.core.util.CommonUtil;
+import yancey.openparticle.core.util.MyLogger;
 
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Arrays;
+import java.io.*;
 import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Environment(EnvType.CLIENT)
 public class OpenParticleCore {
 
-    public static DataRunningPerTick[] dataRunningPerTicks = null;
+    private static final Logger LOGGER = LogUtils.getLogger();
+    public static final OpenParticleAPI CORE = new OpenParticleAPI(
+            identifier -> Registries.PARTICLE_TYPE.getRawId(Registries.PARTICLE_TYPE.get(
+                    new net.minecraft.util.Identifier(identifier.getNamespace(), identifier.getValue()))),
+            new MyLogger(LOGGER)
+    );
+    private static final ReentrantLock LOCK = new ReentrantLock();
     public static String lastPath = null;
     private static RunningHandler runningHandler = null;
+    public static DataRunningPerTick[] dataRunningList = null;
 
     private OpenParticleCore() {
 
     }
 
     public static boolean loadFile(String path) {
-        dataRunningPerTicks = null;
+        LOCK.lock();
+        dataRunningList = null;
         runningHandler = null;
         try (DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(path)))) {
             long timeStart = System.currentTimeMillis();
-            int quantity = dataInputStream.readInt();
-            GuiProgressBar guiProgressBar = new GuiProgressBar("加载粒子文件中", quantity);
-            int a = quantity / 4;
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    if (guiProgressBar.progress <= a) {
-                        CommonUtil.openGui(guiProgressBar);
-                    }
-                }
-            }, 100);
-            dataRunningPerTicks = DataRunningPerTick.readDataRunningPerTicksToFile(dataInputStream, guiProgressBar);
+            dataRunningList = CORE.input(new File(path)).getDataRunningList();
             long timeEnd = System.currentTimeMillis();
-            CommonUtil.mc.inGameHud.getChatHud().addMessage(Text.literal("粒子文件加载成功(耗时:" + (timeEnd - timeStart) + "ms)"));
+            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.literal("粒子文件加载成功(耗时:" + (timeEnd - timeStart) + "ms)"));
             lastPath = path;
             return true;
         } catch (IOException e) {
             return false;
+        } finally {
+            LOCK.unlock();
         }
     }
 
@@ -61,12 +59,12 @@ public class OpenParticleCore {
             runningHandler.stop();
         }
         runningHandler = null;
-        ((ParticleManagerAccessor) CommonUtil.mc.particleManager).invokeClearParticles();
+        ((ParticleManagerAccessor) MinecraftClient.getInstance().particleManager).invokeClearParticles();
         if (!Objects.equals(lastPath, path) && !loadFile(path)) {
             return;
         }
-        if (dataRunningPerTicks != null) {
-            runningHandler = new RunningHandler(world, dataRunningPerTicks);
+        if (dataRunningList != null) {
+            runningHandler = new RunningHandler(world, dataRunningList);
             runningHandler.run();
         }
     }
@@ -75,10 +73,13 @@ public class OpenParticleCore {
         if (!Objects.equals(lastPath, path) && !loadFile(path)) {
             return;
         }
-        if (dataRunningPerTicks != null) {
-            Arrays.stream(runningHandler.dataRunningList)
-                    .filter(dataRunningPerTick -> dataRunningPerTick.tick == tick)
-                    .forEach(dataRunningPerTick -> dataRunningPerTick.run(path, world));
+        if (dataRunningList != null) {
+            for (DataRunningPerTick dataRunning : runningHandler.dataRunningList) {
+                if (dataRunning.tick == tick) {
+                    runningHandler.runTick(path, world, dataRunning.controllerList);
+                    break;
+                }
+            }
         }
     }
 
