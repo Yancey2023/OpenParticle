@@ -12,7 +12,7 @@ public class Identifier {
 
     @NotNull
     private final String namespace, value;
-    private int rawId = -1;
+    private Object particleSprites;
 
     public Identifier(@NotNull String namespace, @NotNull String value) {
         this.namespace = namespace;
@@ -35,11 +35,11 @@ public class Identifier {
         return value;
     }
 
-    public int getRawId(OpenParticleAPI openParticleAPI) {
-        if (rawId == -1) {
-            rawId = openParticleAPI.bridge.getParticleRawId(this);
+    public Object getParticleSprites(OpenParticleAPI openParticleAPI) {
+        if (particleSprites == null) {
+            particleSprites = openParticleAPI.bridge.getParticleSprites(this);
         }
-        return rawId;
+        return particleSprites;
     }
 
     public void writeToFile(@NotNull DataOutputStream dataOutputStream) throws IOException {

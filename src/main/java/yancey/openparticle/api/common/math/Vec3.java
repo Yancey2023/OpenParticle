@@ -71,10 +71,6 @@ public class Vec3 {
         return remove(vec3).distanceToZero();
     }
 
-    public Vec3 copy() {
-        return new Vec3(x, y, z);
-    }
-
     public Vec3 getRadian() {
         return new Vec3((float) 0, (float) Math.atan2(z, MathUtil.distance(x, y)), (float) Math.atan2(y, x));
     }
@@ -92,7 +88,7 @@ public class Vec3 {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Vec3 vec3 = (Vec3) o;
-        return Double.compare(x, vec3.x) == 0 && Double.compare(y, vec3.y) == 0 && Double.compare(z, vec3.z) == 0;
+        return Float.compare(x, vec3.x) == 0 && Float.compare(y, vec3.y) == 0 && Float.compare(z, vec3.z) == 0;
     }
 
     @Override

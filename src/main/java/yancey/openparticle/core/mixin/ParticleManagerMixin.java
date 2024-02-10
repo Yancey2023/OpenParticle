@@ -29,6 +29,7 @@ public abstract class ParticleManagerMixin {
     @Shadow
     @Final
     private Map<ParticleTextureSheet, Queue<Particle>> particles;
+
     @Unique
     private ParticleTextureSheet lastTextureSheet;
 
@@ -70,7 +71,14 @@ public abstract class ParticleManagerMixin {
 
     @Inject(method = "tick", at = @At(value = "HEAD"))
     private void injectTick(CallbackInfo ci) {
-        ParticleAsyncManager.clearTickCache();
+        ParticleAsyncManager.tick();
+    }
+
+    @Inject(method = "tickParticles", at = @At(value = "HEAD"), cancellable = true)
+    private void injectTickParticles(Collection<Particle> particles, CallbackInfo ci) {
+        if (this.particles.get(BetterParticle.BETTER_PARTICLE_SHEET) == particles) {
+            ci.cancel();
+        }
     }
 
 }

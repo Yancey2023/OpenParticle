@@ -4,6 +4,6 @@ import yancey.openparticle.api.common.data.identifier.Identifier;
 
 public interface Bridge {
 
-    int getParticleRawId(Identifier identifier);
+    Object getParticleSprites(Identifier identifier);
 
 }

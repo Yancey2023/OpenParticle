@@ -23,29 +23,33 @@ public class CommandPar {
 
     public static <T extends CommandSource> void init(CommandDispatcher<T> dispatcher, boolean isInitInServer) {
         if (isInitInServer) {
-            command(dispatcher, false);
+            command(dispatcher, true, false);
         }
-        command(dispatcher, true);
+        command(dispatcher, isInitInServer, true);
     }
 
-    private static <T extends CommandSource> void command(CommandDispatcher<T> dispatcher, boolean isRunInClient) {
+    private static <T extends CommandSource> void command(CommandDispatcher<T> dispatcher, boolean isInitInServer, boolean isRunInClient) {
         LiteralArgumentBuilder<T> builder = LiteralArgumentBuilder.literal(isRunInClient ? "parc" : "par");
-        if (!isRunInClient) {
+        Function<String, LiteralArgumentBuilder<T>> literal = LiteralArgumentBuilder::literal;
+        if (isInitInServer) {
             builder.requires(source -> source.hasPermissionLevel(2));
+        } else {
+            builder.then(literal.apply("stop").executes(context -> {
+                OpenParticleCore.clearParticle();
+                return 1;
+            }));
         }
         RequiredArgumentBuilder<T, String> path = RequiredArgumentBuilder.argument("path", StringArgumentType.greedyString());
-        Function<String, LiteralArgumentBuilder<T>> literal = LiteralArgumentBuilder::literal;
         Function<Identifier, RequiredArgumentBuilder<T, String>> execute = identifier ->
                 path.executes(executeFile(identifier, isRunInClient));
         dispatcher.register(builder
-                .then(literal.apply("file")
-                        .then(literal.apply("loadAndRun")
-                                .then(execute.apply(NetworkHandler.ID_LOAD_AND_RUN)))
-                        .then(literal.apply("load")
-                                .then(execute.apply(NetworkHandler.ID_LOAD)))
-                        .then(literal.apply("run")
-                                .executes(executeFile(NetworkHandler.ID_RUN, isRunInClient)))
-                ));
+                .then(literal.apply("loadAndRun")
+                        .then(execute.apply(NetworkHandler.ID_LOAD_AND_RUN)))
+                .then(literal.apply("load")
+                        .then(execute.apply(NetworkHandler.ID_LOAD)))
+                .then(literal.apply("run")
+                        .executes(executeFile(NetworkHandler.ID_RUN, isRunInClient)))
+        );
     }
 
     private static <T extends CommandSource> Command<T> executeFile(Identifier identifier, boolean isRunInClient) {

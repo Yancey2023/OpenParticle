@@ -12,7 +12,6 @@ public interface ParticleController {
 
     int getAge();
 
-    int getParticleTypeRawId(OpenParticleAPI openParticleAPI);
+    Object getParticleSprites(OpenParticleAPI openParticleAPI);
 
-    void clearCache();
 }

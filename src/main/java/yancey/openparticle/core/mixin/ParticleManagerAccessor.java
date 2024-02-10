@@ -24,4 +24,7 @@ public interface ParticleManagerAccessor {
 
     @Accessor
     Map<ParticleTextureSheet, Queue<Particle>> getParticles();
+
+    @Accessor
+    Queue<Particle> getNewParticles();
 }

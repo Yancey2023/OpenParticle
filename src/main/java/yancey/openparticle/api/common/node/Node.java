@@ -10,11 +10,10 @@ public class Node {
     public final DataParticle dataParticle;
     private final ReentrantLock lock = new ReentrantLock();
     private Node parent;
-    private int tickAdd, age;
-    private Matrix cachePosition;
-    private Integer cacheColor;
-    private boolean isCache = false;
-    private boolean isCacheColor = false;
+    public Matrix cachePosition;
+    public Integer cacheColor;
+    private int tickStart = -1, tickAdd, age;
+    private int lastCacheTick = -1;
 
     public Node(DataParticle dataParticle) {
         this.dataParticle = dataParticle;
@@ -29,14 +28,6 @@ public class Node {
         this.tickAdd += tickAdd;
     }
 
-    private Matrix getPositionMatrix(int tick) {
-        return dataParticle.getPositionMatrix(tick + tickAdd, age);
-    }
-
-    private Integer getColor(int tick) {
-        return dataParticle.getColor(tick + tickAdd, age);
-    }
-
     public int getAge() {
         return age;
     }
@@ -46,54 +37,27 @@ public class Node {
     }
 
     public int getTickStart() {
-        return parent == null ? tickAdd : tickAdd + parent.getTickStart();
-    }
-
-    public Matrix getCachePositionMatrix(int tick) {
-        lock.lock();
-        try {
-            if (cachePosition == null) {
-                cachePosition = getPositionMatrix(tick);
-                if (parent != null) {
-                    cachePosition = Matrix.multiply(parent.getCachePositionMatrix(tick), cachePosition);
-                }
-                isCache = true;
-            }
-            return cachePosition;
-        } finally {
-            lock.unlock();
+        if (tickStart == -1) {
+            tickStart = parent == null ? tickAdd : tickAdd + parent.getTickStart();
         }
+        return tickStart;
     }
 
-    public int getCacheColor(int tick) {
+    public void cache(int tick) {
         lock.lock();
         try {
-            if (!isCacheColor) {
-                Integer color = parent.getColor(tick);
-                if (color == null) {
-                    cacheColor = getColor(tick);
-                } else {
-                    cacheColor = color;
-                }
-                isCache = true;
-                isCacheColor = true;
-            }
-            return cacheColor;
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public void clearCache() {
-        lock.lock();
-        try {
-            if (isCache) {
-                isCache = false;
-                isCacheColor = false;
-                cachePosition = null;
+            if (tick != lastCacheTick) {
+                cachePosition = dataParticle.getPositionMatrix(tick - tickAdd, age);
+                cacheColor = null;
                 if (parent != null) {
-                    parent.clearCache();
+                    parent.cache(tick - tickAdd);
+                    cacheColor = parent.cacheColor;
+                    cachePosition = Matrix.multiply(parent.cachePosition, cachePosition);
                 }
+                if (cacheColor == null) {
+                    cacheColor = dataParticle.getColor(tick - tickAdd, age);
+                }
+                lastCacheTick = tick;
             }
         } finally {
             lock.unlock();

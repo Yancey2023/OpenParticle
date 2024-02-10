@@ -38,7 +38,7 @@ public class Matrix {
         return scale(scale, scale, scale);
     }
 
-    public static Matrix rotateX(double radian) {
+    public static Matrix rotateX(float radian) {
         float sin = (float) Math.sin(radian);
         float cos = (float) Math.cos(radian);
         return new Matrix(
@@ -49,7 +49,7 @@ public class Matrix {
         );
     }
 
-    public static Matrix rotateY(double radian) {
+    public static Matrix rotateY(float radian) {
         float sin = (float) Math.sin(radian);
         float cos = (float) Math.cos(radian);
         return new Matrix(
@@ -60,7 +60,7 @@ public class Matrix {
         );
     }
 
-    public static Matrix rotateZ(double radian) {
+    public static Matrix rotateZ(float radian) {
         float sin = (float) Math.sin(radian);
         float cos = (float) Math.cos(radian);
         return new Matrix(
@@ -71,8 +71,18 @@ public class Matrix {
         );
     }
 
-    public static Matrix rotateXYZ(double x, double y, double z) {
-        return multiplyAll(rotateX(x), rotateY(y), rotateZ(z));
+    public static Matrix rotateXYZ(float x, float y, float z) {
+        Matrix matrix = Matrix.ZERO;
+        if (z != 0) {
+            matrix = matrix.multiply(rotateZ(z));
+        }
+        if (y != 0) {
+            matrix = matrix.multiply(rotateY(y));
+        }
+        if (x != 0) {
+            matrix = matrix.multiply(rotateX(x));
+        }
+        return matrix;
     }
 
     public static Matrix rotateXYZ(Vec3 radius) {
@@ -102,7 +112,7 @@ public class Matrix {
 
     public static Matrix multiplyAll(Matrix... matrices) {
         if (matrices == null || matrices.length == 0) {
-            throw new RuntimeException("矩阵相乘至少要有一个矩阵");
+            return Matrix.ZERO;
         }
         Matrix matrix = matrices[0];
         if (matrices.length == 1) {

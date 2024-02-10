@@ -16,17 +16,19 @@ import org.joml.Quaternionf;
 import yancey.openparticle.api.common.controller.ParticleController;
 import yancey.openparticle.api.common.data.ParticleState;
 import yancey.openparticle.core.client.ParticleAsyncManager;
+import yancey.openparticle.core.core.OpenParticleCore;
 import yancey.openparticle.core.mixin.BufferBuilderAccessor;
 
 import java.nio.ByteBuffer;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Environment(EnvType.CLIENT)
 public class BetterParticle extends Particle {
 
-    public static final ExecutorService executorService = Executors.newFixedThreadPool(64);
-    private static float cacheX1, cacheY1, cacheZ1, cacheX2, cacheY2, cacheZ2;    public static final ParticleTextureSheet BETTER_PARTICLE_SHEET = new ParticleTextureSheet() {
+    private static float cacheX1, cacheY1, cacheZ1, cacheX2, cacheY2, cacheZ2;
+
+    public static BetterParticle create(ClientWorld world, ParticleController controller) {
+        return new BetterParticle(world, controller.getParticleState(0), controller, (SpriteProvider) controller.getParticleSprites(OpenParticleCore.CORE));
+    }    public static final ParticleTextureSheet BETTER_PARTICLE_SHEET = new ParticleTextureSheet() {
         public void begin(BufferBuilder builder, TextureManager textureManager) {
             RenderSystem.depthMask(true);
             RenderSystem.setShaderTexture(0, SpriteAtlasTexture.PARTICLE_ATLAS_TEXTURE);
@@ -59,11 +61,15 @@ public class BetterParticle extends Particle {
         updateSprite();
     }
 
-    public static BetterParticle create(ClientWorld world, ParticleController particleController, SpriteProvider spriteProvider) {
-        if (particleController.getAge() == 0) {
-            return null;
-        }
-        return new BetterParticle(world, particleController.getParticleState(0), particleController, spriteProvider);
+    public void buildGeometryAsync(VertexConsumer vertexConsumer, Camera camera, float tickDelta, int elementOffset) {
+        Vec3d cameraPos = camera.getPos();
+        float dx = lerp(tickDelta, (float) this.prevPosX, this.particleState.x) - (float) cameraPos.getX();
+        float dy = lerp(tickDelta, (float) this.prevPosY, this.particleState.y) - (float) cameraPos.getY();
+        float dz = lerp(tickDelta, (float) this.prevPosZ, this.particleState.z) - (float) cameraPos.getZ();
+        vertex(elementOffset, vertexConsumer, cacheX1 + dx, cacheY1 + dy, cacheZ1 + dz, maxU, maxV);
+        vertex(elementOffset + 28, vertexConsumer, cacheX2 + dx, cacheY2 + dy, cacheZ2 + dz, maxU, minV);
+        vertex(elementOffset + 56, vertexConsumer, -cacheX1 + dx, -cacheY1 + dy, -cacheZ1 + dz, minU, minV);
+        vertex(elementOffset + 84, vertexConsumer, -cacheX2 + dx, -cacheY2 + dy, -cacheZ2 + dz, minU, maxV);
     }
 
     public static void buildRenderCache(Camera camera) {
@@ -117,25 +123,12 @@ public class BetterParticle extends Particle {
         this.particleState = particleController.getParticleState(age);
     }
 
-    public void clearCache() {
-        particleController.clearCache();
-    }
-
     @Override
     public void buildGeometry(VertexConsumer vertexConsumer, Camera camera, float tickDelta) {
         // do nothing
     }
 
-    public void buildGeometryAsync(VertexConsumer vertexConsumer, Camera camera, float tickDelta, int elementOffset) {
-        Vec3d cameraPos = camera.getPos();
-        float dx = lerp(tickDelta, (float) this.prevPosX, (float) this.particleState.x) - (float) cameraPos.getX();
-        float dy = lerp(tickDelta, (float) this.prevPosY, (float) this.particleState.y) - (float) cameraPos.getY();
-        float dz = lerp(tickDelta, (float) this.prevPosZ, (float) this.particleState.z) - (float) cameraPos.getZ();
-        vertex(elementOffset, vertexConsumer, cacheX1 + dx, cacheY1 + dy, cacheZ1 + dz, maxU, maxV);
-        vertex(elementOffset + 28, vertexConsumer, cacheX2 + dx, cacheY2 + dy, cacheZ2 + dz, maxU, minV);
-        vertex(elementOffset + 56, vertexConsumer, -cacheX1 + dx, -cacheY1 + dy, -cacheZ1 + dz, minU, minV);
-        vertex(elementOffset + 84, vertexConsumer, -cacheX2 + dx, -cacheY2 + dy, -cacheZ2 + dz, minU, maxV);
-    }
+
 
     private void vertex(int elementOffset, VertexConsumer vertexConsumer, float x, float y, float z, float u, float v) {
         ByteBuffer buffer = ((BufferBuilderAccessor) vertexConsumer).getBuffer();

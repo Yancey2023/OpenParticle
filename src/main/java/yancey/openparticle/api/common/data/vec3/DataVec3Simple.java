@@ -48,24 +48,23 @@ public class DataVec3Simple extends DataVec3 {
     @Override
     public Vec3 getVec3(int tick, int age) {
         int lastMaxTick = cache.size() - 1;
-        if (lastMaxTick > tick) {
-            return cache.get(tick).first;
-        }
-        Pair<Vec3, Vec3> lastPair = lastMaxTick == -1 ? new Pair<>(position, speed) : cache.get(lastMaxTick);
-        float x = lastPair.first.x;
-        float y = lastPair.first.y;
-        float z = lastPair.first.z;
-        float vx = lastPair.second.x;
-        float vy = lastPair.second.y;
-        float vz = lastPair.second.z;
-        for (int i = lastMaxTick + 1; i <= tick; i++) {
-            x += vx;
-            y += vy;
-            z += vz;
-            vx *= f;
-            vy = vy * f - g;
-            vz *= f;
-            cache.add(new Pair<>(new Vec3(x, y, z), new Vec3(vx, vy, vz)));
+        if (lastMaxTick <= tick) {
+            Pair<Vec3, Vec3> lastPair = lastMaxTick == -1 ? new Pair<>(position, speed) : cache.get(lastMaxTick);
+            float x = lastPair.first.x;
+            float y = lastPair.first.y;
+            float z = lastPair.first.z;
+            float vx = lastPair.second.x;
+            float vy = lastPair.second.y;
+            float vz = lastPair.second.z;
+            for (int i = lastMaxTick + 1; i <= tick; i++) {
+                x += vx;
+                y += vy;
+                z += vz;
+                vx *= f;
+                vy = vy * f - g;
+                vz *= f;
+                cache.add(new Pair<>(new Vec3(x, y, z), new Vec3(vx, vy, vz)));
+            }
         }
         return cache.get(tick).first;
     }
