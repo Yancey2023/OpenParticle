@@ -79,7 +79,7 @@ public class Vec3 {
         return new Vec3((float) Math.toRadians(x), (float) Math.toRadians(y), (float) Math.toRadians(z));
     }
 
-    public boolean isZero(){
+    public boolean isZero() {
         return x == 0 && y == 0 && z == 0;
     }
 

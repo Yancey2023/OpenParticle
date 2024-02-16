@@ -10,22 +10,22 @@ public class IdentifierCache {
 
     public static List<Identifier> identifierList = new ArrayList<>();
 
-    public static void add(Identifier identifier){
+    public static void add(Identifier identifier) {
         if (!identifierList.contains(identifier)) {
             identifierList.add(identifier);
         }
     }
 
-    public static int getId(Identifier identifier){
+    public static int getId(Identifier identifier) {
         for (int i = 0; i < identifierList.size(); i++) {
-            if(identifierList.get(i) == identifier){
+            if (identifierList.get(i) == identifier) {
                 return i;
             }
         }
         return -1;
     }
 
-    public static Identifier getIdentifier(int id){
+    public static Identifier getIdentifier(int id) {
         return identifierList.get(id);
     }
 
