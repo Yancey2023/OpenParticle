@@ -14,25 +14,27 @@ Multithreading particle VBO filling can greatly improve your particle rendering 
 load particle in file:
 
 ```mcfunction
-par file load path_to_your_file
+par load path_to_your_file
 ```
 
 run particle:
 
 ```mcfunction
-par file run
+par run
 ```
 
 load particle in file and run it:
 
 ```mcfunction
-par file loadAndRun path_to_your_file
+par loadAndRun path_to_your_file
 ```
 
 ## How to create a particle file
 
-You can find the api in this package: `yancey.openparticle.api.common`.
+[OpenParticle Java API](https://github.com/Yancey2023/OpenParticleAPI)
 
-clone it to your java project, or implement the same logic in whatever language you like.
+[OpenParticle Python API](https://github.com/Yancey2023/OpenParticleAPI-py)
+
+if you want to use other languages, you can find the basic java api in this package: `yancey.openparticle.api.common`. You can implement the same logic in whatever language you like.
 
 Have fun!!!
