@@ -37,7 +37,7 @@ public class Identifier {
 
     public Object getParticleSprites(OpenParticleAPI openParticleAPI) {
         if (particleSprites == null) {
-            particleSprites = openParticleAPI.bridge.getParticleSprites(this);
+            particleSprites = openParticleAPI.bridge().getParticleSprites(this);
         }
         return particleSprites;
     }

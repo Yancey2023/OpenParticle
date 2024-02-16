@@ -99,15 +99,36 @@ public class Matrix {
         } else if (matrix2 == Matrix.ZERO) {
             return matrix1;
         }
-        float[] data = new float[16];
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                for (int k = 0; k < 4; k++) {
-                    data[4 * i + j] += matrix1.data[4 * i + k] * matrix2.data[4 * k + j];
-                }
-            }
-        }
-        return new Matrix(data);
+        return new Matrix(
+                matrix1.data[0] * matrix2.data[0] + matrix1.data[1] * matrix2.data[4] + matrix1.data[2] * matrix2.data[8] + matrix1.data[3] * matrix2.data[12],
+                matrix1.data[0] * matrix2.data[1] + matrix1.data[1] * matrix2.data[5] + matrix1.data[2] * matrix2.data[9] + matrix1.data[3] * matrix2.data[13],
+                matrix1.data[0] * matrix2.data[2] + matrix1.data[1] * matrix2.data[6] + matrix1.data[2] * matrix2.data[10] + matrix1.data[3] * matrix2.data[14],
+                matrix1.data[0] * matrix2.data[3] + matrix1.data[1] * matrix2.data[7] + matrix1.data[2] * matrix2.data[11] + matrix1.data[3] * matrix2.data[15],
+
+                matrix1.data[4] * matrix2.data[0] + matrix1.data[5] * matrix2.data[4] + matrix1.data[6] * matrix2.data[8] + matrix1.data[7] * matrix2.data[12],
+                matrix1.data[4] * matrix2.data[1] + matrix1.data[5] * matrix2.data[5] + matrix1.data[6] * matrix2.data[9] + matrix1.data[7] * matrix2.data[13],
+                matrix1.data[4] * matrix2.data[2] + matrix1.data[5] * matrix2.data[6] + matrix1.data[6] * matrix2.data[10] + matrix1.data[7] * matrix2.data[14],
+                matrix1.data[4] * matrix2.data[3] + matrix1.data[5] * matrix2.data[7] + matrix1.data[6] * matrix2.data[11] + matrix1.data[7] * matrix2.data[15],
+
+                matrix1.data[8] * matrix2.data[0] + matrix1.data[9] * matrix2.data[4] + matrix1.data[10] * matrix2.data[8] + matrix1.data[11] * matrix2.data[12],
+                matrix1.data[8] * matrix2.data[1] + matrix1.data[9] * matrix2.data[5] + matrix1.data[10] * matrix2.data[9] + matrix1.data[11] * matrix2.data[13],
+                matrix1.data[8] * matrix2.data[2] + matrix1.data[9] * matrix2.data[6] + matrix1.data[10] * matrix2.data[10] + matrix1.data[11] * matrix2.data[14],
+                matrix1.data[8] * matrix2.data[3] + matrix1.data[9] * matrix2.data[7] + matrix1.data[10] * matrix2.data[11] + matrix1.data[11] * matrix2.data[15],
+
+                matrix1.data[12] * matrix2.data[0] + matrix1.data[13] * matrix2.data[4] + matrix1.data[14] * matrix2.data[8] + matrix1.data[15] * matrix2.data[12],
+                matrix1.data[12] * matrix2.data[1] + matrix1.data[13] * matrix2.data[5] + matrix1.data[14] * matrix2.data[9] + matrix1.data[15] * matrix2.data[13],
+                matrix1.data[12] * matrix2.data[2] + matrix1.data[13] * matrix2.data[6] + matrix1.data[14] * matrix2.data[10] + matrix1.data[15] * matrix2.data[14],
+                matrix1.data[12] * matrix2.data[3] + matrix1.data[13] * matrix2.data[7] + matrix1.data[14] * matrix2.data[11] + matrix1.data[15] * matrix2.data[15]
+        );
+//        float[] data = new float[16];
+//        for (int i = 0; i < 4; i++) {
+//            for (int j = 0; j < 4; j++) {
+//                for (int k = 0; k < 4; k++) {
+//                    data[4 * i + j] += matrix1.data[4 * i + k] * matrix2.data[4 * k + j];
+//                }
+//            }
+//        }
+//        return new Matrix(data);
     }
 
     public static Matrix multiplyAll(Matrix... matrices) {

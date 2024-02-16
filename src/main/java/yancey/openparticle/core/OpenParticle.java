@@ -13,6 +13,7 @@ import yancey.openparticle.core.network.NetworkHandler;
 public class OpenParticle implements ModInitializer {
 
     public static final String MOD_ID = "openparticle";
+    public static final boolean isDebug = false;
 
     @Override
     public void onInitialize() {

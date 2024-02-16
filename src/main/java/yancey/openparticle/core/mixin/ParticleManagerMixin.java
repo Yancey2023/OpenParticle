@@ -33,6 +33,11 @@ public abstract class ParticleManagerMixin {
     @Unique
     private ParticleTextureSheet lastTextureSheet;
 
+//    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Ljava/util/Map;computeIfAbsent(Ljava/lang/Object;Ljava/util/function/Function;)Ljava/lang/Object;"))
+//    private <K, V> V redirectComputeIfAbsent(Map<K, V> particles, K k, Function<? super K, ? extends V> key) {
+//        return particles.computeIfAbsent(k, (sheet) -> (V) new LinkedList<Particle>());
+//    }
+
     @Redirect(method = {"method_18125"}, at = @At(value = "INVOKE", target = "Lcom/google/common/collect/EvictingQueue;create(I)Lcom/google/common/collect/EvictingQueue;", remap = false))
     private static EvictingQueue<Particle> modifyArgTick(int maxSize) {
         return EvictingQueue.create(500000);

@@ -50,14 +50,20 @@ public class DataParticleSingle extends DataParticle {
     }
 
     @Override
-    public Pair<Node, Stream<Node>> getNode() {
+    public Pair<Node, Stream<Node>> getNode(Node parentNode) {
         Node node = new Node(this);
+        node.setParent(parentNode);
         node.setAge(age);
         return new Pair<>(node, Stream.of(node));
     }
 
     @Override
     public Integer getColor(int tick, int age) {
+        return 0xFFFFFFFF;
+    }
+
+    @Override
+    public Integer getCurrentStaticColor() {
         return 0xFFFFFFFF;
     }
 }

@@ -27,4 +27,8 @@ public abstract class DataColor {
     }
 
     public abstract int getColor(int tick, int age);
+
+    public Integer getCurrentStaticColor() {
+        return null;
+    }
 }

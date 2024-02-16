@@ -46,4 +46,9 @@ public class DataParticleColor extends DataParticle {
     public Integer getColor(int tick, int age) {
         return color.getColor(tick, age);
     }
+
+    @Override
+    public Integer getCurrentStaticColor() {
+        return color.getCurrentStaticColor();
+    }
 }

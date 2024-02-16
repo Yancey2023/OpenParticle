@@ -8,7 +8,11 @@ import net.minecraft.client.particle.SpriteProvider;
 import net.minecraft.particle.ParticleType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.text.HoverEvent;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import org.slf4j.Logger;
 import yancey.openparticle.api.common.OpenParticleAPI;
@@ -16,7 +20,12 @@ import yancey.openparticle.api.common.data.DataRunningPerTick;
 import yancey.openparticle.core.mixin.ParticleManagerAccessor;
 import yancey.openparticle.core.util.MyLogger;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -45,7 +54,7 @@ public class OpenParticleCore {
     }
 
     public static void clearParticle() {
-        if(runningHandler != null){
+        if (runningHandler != null) {
             runningHandler.stop();
             runningHandler = null;
         }
@@ -56,14 +65,37 @@ public class OpenParticleCore {
         LOCK.lock();
         dataRunningList = null;
         runningHandler = null;
-        try (DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(path)))) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        try {
             long timeStart = System.currentTimeMillis();
             dataRunningList = CORE.input(new File(path)).getDataRunningList();
             long timeEnd = System.currentTimeMillis();
-//            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.literal("粒子文件加载成功(耗时:" + (timeEnd - timeStart) + "ms)"));
+            if (client.world != null) {
+                if (client.world.getGameRules().getBoolean(GameRules.COMMAND_BLOCK_OUTPUT)) {
+                    client.inGameHud.getChatHud().addMessage(Text.empty()
+                            .append(Text.literal("粒子文件加载成功(耗时"))
+                            .append(Text.literal((timeEnd - timeStart) + "ms").formatted(Formatting.AQUA))
+                            .append(Text.literal(")"))
+                    );
+                }
+            }
             lastPath = path;
             return true;
         } catch (IOException e) {
+            if (!Files.exists(Path.of(path))) {
+                client.inGameHud.getChatHud().addMessage(Text.empty()
+                        .append(Text.literal("粒子文件加载失败(找不到文件: ").formatted(Formatting.RED))
+                        .append(Text.literal(path).formatted(Formatting.LIGHT_PURPLE))
+                        .append(Text.literal(")").formatted(Formatting.RED))
+                );
+            } else {
+                client.inGameHud.getChatHud().addMessage(Text.literal("未知原因").formatted(Formatting.RED).styled(style -> {
+                    StringWriter stringWriter = new StringWriter();
+                    PrintWriter printWriter = new PrintWriter(stringWriter);
+                    e.printStackTrace(printWriter);
+                    return style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(stringWriter.toString()).formatted(Formatting.RED)));
+                }));
+            }
             return false;
         } finally {
             LOCK.unlock();
@@ -71,6 +103,7 @@ public class OpenParticleCore {
     }
 
     public static void run(String path, World world) {
+        LOCK.lock();
         clearParticle();
         if (!Objects.equals(lastPath, path) && !loadFile(path)) {
             return;
@@ -79,9 +112,11 @@ public class OpenParticleCore {
             runningHandler = new RunningHandler(world, dataRunningList);
             runningHandler.run();
         }
+        LOCK.unlock();
     }
 
     public static void runTick(String path, World world, int tick) {
+        LOCK.lock();
         if (!Objects.equals(lastPath, path) && !loadFile(path)) {
             return;
         }
@@ -93,6 +128,7 @@ public class OpenParticleCore {
                 }
             }
         }
+        LOCK.unlock();
     }
 
     public static boolean loadAndRun(String path, World world) {

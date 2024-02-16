@@ -30,4 +30,7 @@ public abstract class DataVec3 {
 
     public abstract Vec3 getVec3(int tick, int age);
 
+    public Vec3 getCurrentStaticPosition() {
+        return null;
+    }
 }

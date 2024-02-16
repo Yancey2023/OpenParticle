@@ -42,8 +42,8 @@ public class DataParticleTick extends DataParticle {
     }
 
     @Override
-    public Pair<Node, Stream<Node>> getNode() {
-        Pair<Node, Stream<Node>> result = dataParticle.getNode();
+    public Pair<Node, Stream<Node>> getNode(Node parentNode) {
+        Pair<Node, Stream<Node>> result = dataParticle.getNode(parentNode);
         result.first.addTickAdd(tickStart);
         return result;
     }

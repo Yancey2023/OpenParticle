@@ -8,15 +8,7 @@ import yancey.openparticle.api.common.data.identifier.IdentifierCache;
 
 import java.io.*;
 
-public class OpenParticleAPI {
-
-    public final Bridge bridge;
-    public final Logger logger;
-
-    public OpenParticleAPI(Bridge bridge, Logger logger) {
-        this.bridge = bridge;
-        this.logger = logger;
-    }
+public record OpenParticleAPI(Bridge bridge, Logger logger) {
 
     public long getParticleCount(DataParticleManager dataParticleManager) {
         return dataParticleManager.getParticleCount();
@@ -37,13 +29,11 @@ public class OpenParticleAPI {
         }
     }
 
-    public DataParticleManager input(@NotNull File file) {
-        try (DataInputStream dataOutputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(file)))) {
-            IdentifierCache.readFromFile(dataOutputStream);
-            return new DataParticleManager(dataOutputStream);
+    public DataParticleManager input(@NotNull File file) throws IOException {
+        try (DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(file)))) {
+            return new DataParticleManager(dataInputStream);
         } catch (IOException e) {
-            logger.warn("文件读取失败 : " + file.getAbsolutePath(), e);
+            throw e;
         }
-        return null;
     }
 }

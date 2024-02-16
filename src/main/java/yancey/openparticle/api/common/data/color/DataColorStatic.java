@@ -30,4 +30,9 @@ public class DataColorStatic extends DataColor {
     public int getColor(int tick, int age) {
         return color;
     }
+
+    @Override
+    public Integer getCurrentStaticColor() {
+        return color;
+    }
 }

@@ -26,9 +26,8 @@ public class BetterParticle extends Particle {
 
     private static float cacheX1, cacheY1, cacheZ1, cacheX2, cacheY2, cacheZ2;
 
-    public static BetterParticle create(ClientWorld world, ParticleController controller) {
-        return new BetterParticle(world, controller.getParticleState(0), controller, (SpriteProvider) controller.getParticleSprites(OpenParticleCore.CORE));
-    }    public static final ParticleTextureSheet BETTER_PARTICLE_SHEET = new ParticleTextureSheet() {
+    private ParticleState lastParticleState, particleState;
+    private Sprite nextSprite;    public static final ParticleTextureSheet BETTER_PARTICLE_SHEET = new ParticleTextureSheet() {
         public void begin(BufferBuilder builder, TextureManager textureManager) {
             RenderSystem.depthMask(true);
             RenderSystem.setShaderTexture(0, SpriteAtlasTexture.PARTICLE_ATLAS_TEXTURE);
@@ -49,27 +48,64 @@ public class BetterParticle extends Particle {
     private static Vec3d lastCameraPos;
     private final ParticleController particleController;
     private final SpriteProvider spriteProvider;
-    private ParticleState particleState;
-    private float minU, maxU, minV, maxV;
-
     private BetterParticle(ClientWorld world, ParticleState start, ParticleController particleController, SpriteProvider spriteProvider) {
         super(world, start.x, start.y, start.z);
         this.spriteProvider = spriteProvider;
         this.particleController = particleController;
+        this.lastParticleState = start;
         this.particleState = start;
         this.maxAge = particleController.getAge();
+        this.nextSprite = spriteProvider.getSprite(this.age, this.maxAge);
         updateSprite();
+    }
+
+    public static BetterParticle create(ClientWorld world, ParticleController controller) {
+        controller.prepare(0);
+        return new BetterParticle(world, controller.getParticleState(), controller, (SpriteProvider) controller.getParticleSprites(OpenParticleCore.CORE));
+    }
+    private float minU, maxU, minV, maxV;
+
+    private void updateSprite() {
+        this.minU = this.nextSprite.getMinU();
+        this.maxU = this.nextSprite.getMaxU();
+        this.minV = this.nextSprite.getMinV();
+        this.maxV = this.nextSprite.getMaxV();
+    }
+
+    public void prepare() {
+        if (age + 1 < age) {
+            nextSprite = spriteProvider.getSprite(this.age + 1, this.maxAge);
+        }
+        particleController.prepare(age + 1);
+    }
+
+    public void tick() {
+        updateSprite();
+        if (++this.age >= this.maxAge) {
+            this.markDead();
+            return;
+        }
+        if (particleController.isStatic()) {
+            return;
+        }
+        this.lastParticleState = particleState;
+        this.particleState = particleController.getParticleState();
     }
 
     public void buildGeometryAsync(VertexConsumer vertexConsumer, Camera camera, float tickDelta, int elementOffset) {
         Vec3d cameraPos = camera.getPos();
-        float dx = lerp(tickDelta, (float) this.prevPosX, this.particleState.x) - (float) cameraPos.getX();
-        float dy = lerp(tickDelta, (float) this.prevPosY, this.particleState.y) - (float) cameraPos.getY();
-        float dz = lerp(tickDelta, (float) this.prevPosZ, this.particleState.z) - (float) cameraPos.getZ();
+        float dx = lerp(tickDelta, this.lastParticleState.x, this.particleState.x) - (float) cameraPos.getX();
+        float dy = lerp(tickDelta, this.lastParticleState.y, this.particleState.y) - (float) cameraPos.getY();
+        float dz = lerp(tickDelta, this.lastParticleState.z, this.particleState.z) - (float) cameraPos.getZ();
         vertex(elementOffset, vertexConsumer, cacheX1 + dx, cacheY1 + dy, cacheZ1 + dz, maxU, maxV);
         vertex(elementOffset + 28, vertexConsumer, cacheX2 + dx, cacheY2 + dy, cacheZ2 + dz, maxU, minV);
         vertex(elementOffset + 56, vertexConsumer, -cacheX1 + dx, -cacheY1 + dy, -cacheZ1 + dz, minU, minV);
         vertex(elementOffset + 84, vertexConsumer, -cacheX2 + dx, -cacheY2 + dy, -cacheZ2 + dz, minU, maxV);
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + ", Pos (" + particleState.x + "," + particleState.y + "," + particleState.z + "), RGBA (" + particleState.r + "," + particleState.g + "," + particleState.b + "," + particleState.a + "), Age " + age;
     }
 
     public static void buildRenderCache(Camera camera) {
@@ -103,32 +139,10 @@ public class BetterParticle extends Particle {
         return BETTER_PARTICLE_SHEET;
     }
 
-    private void updateSprite() {
-        Sprite sprite = spriteProvider.getSprite(this.age, this.maxAge);
-        this.minU = sprite.getMinU();
-        this.maxU = sprite.getMaxU();
-        this.minV = sprite.getMinV();
-        this.maxV = sprite.getMaxV();
-    }
-
-    public void tick() {
-        updateSprite();
-        this.prevPosX = this.particleState.x;
-        this.prevPosY = this.particleState.y;
-        this.prevPosZ = this.particleState.z;
-        if (++this.age >= this.maxAge) {
-            this.markDead();
-            return;
-        }
-        this.particleState = particleController.getParticleState(age);
-    }
-
     @Override
     public void buildGeometry(VertexConsumer vertexConsumer, Camera camera, float tickDelta) {
         // do nothing
     }
-
-
 
     private void vertex(int elementOffset, VertexConsumer vertexConsumer, float x, float y, float z, float u, float v) {
         ByteBuffer buffer = ((BufferBuilderAccessor) vertexConsumer).getBuffer();

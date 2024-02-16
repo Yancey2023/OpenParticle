@@ -9,7 +9,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 public abstract class DataParticle {
@@ -65,10 +64,11 @@ public abstract class DataParticle {
     /**
      * 左边是当前的节点，右边是最底层的节点
      */
-    public Pair<Node, Stream<Node>> getNode() {
+    public Pair<Node, Stream<Node>> getNode(Node parentNode) {
         Node node = new Node(this);
+        node.setParent(parentNode);
         return new Pair<>(node, getChildren()
-                .map(DataParticle::getNode)
+                .map(dataParticle -> dataParticle.getNode(node))
                 .peek(pair -> pair.first.setParent(node))
                 .flatMap(pair -> pair.second));
     }
@@ -78,19 +78,14 @@ public abstract class DataParticle {
     }
 
     public Integer getColor(int tick, int age) {
-        return null;
+        return 0;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        DataParticle that = (DataParticle) o;
-        return id == that.id;
+    public Matrix getCurrentStaticPosition() {
+        return Matrix.ZERO;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
+    public Integer getCurrentStaticColor() {
+        return 0;
     }
 }

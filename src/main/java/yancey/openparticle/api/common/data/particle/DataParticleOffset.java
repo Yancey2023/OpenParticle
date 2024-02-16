@@ -3,6 +3,7 @@ package yancey.openparticle.api.common.data.particle;
 import yancey.openparticle.api.common.data.DataParticleManager;
 import yancey.openparticle.api.common.data.vec3.DataVec3;
 import yancey.openparticle.api.common.math.Matrix;
+import yancey.openparticle.api.common.math.Vec3;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -14,7 +15,7 @@ public class DataParticleOffset extends DataParticle {
     public final DataParticle dataParticle;
     public final DataVec3 offset;
 
-    public DataParticleOffset(DataParticle dataParticle,  DataVec3 offset) {
+    public DataParticleOffset(DataParticle dataParticle, DataVec3 offset) {
         super();
         this.dataParticle = dataParticle;
         this.offset = offset;
@@ -46,5 +47,11 @@ public class DataParticleOffset extends DataParticle {
     @Override
     public Matrix getPositionMatrix(int tick, int age) {
         return Matrix.offset(offset.getVec3(tick, age));
+    }
+
+    @Override
+    public Matrix getCurrentStaticPosition() {
+        Vec3 result = offset.getCurrentStaticPosition();
+        return result == null ? null : Matrix.offset(result);
     }
 }

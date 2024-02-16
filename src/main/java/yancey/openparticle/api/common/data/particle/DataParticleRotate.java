@@ -3,6 +3,7 @@ package yancey.openparticle.api.common.data.particle;
 import yancey.openparticle.api.common.data.DataParticleManager;
 import yancey.openparticle.api.common.data.vec3.DataVec3;
 import yancey.openparticle.api.common.math.Matrix;
+import yancey.openparticle.api.common.math.Vec3;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -46,5 +47,11 @@ public class DataParticleRotate extends DataParticle {
     @Override
     public Matrix getPositionMatrix(int tick, int age) {
         return Matrix.rotateXYZ(rotate.getVec3(tick, age));
+    }
+
+    @Override
+    public Matrix getCurrentStaticPosition() {
+        Vec3 result = rotate.getCurrentStaticPosition();
+        return result == null ? null : Matrix.rotateXYZ(result);
     }
 }

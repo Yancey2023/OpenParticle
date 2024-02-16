@@ -11,22 +11,22 @@ import java.util.List;
 
 public class DataVec3Simple extends DataVec3 {
 
-    private final Vec3 position, speed;
+    private final Vec3 vec3, speed;
     private final float g, f;
     /**
      * 左边位置，右边速度
      */
     private final List<Pair<Vec3, Vec3>> cache = new ArrayList<>();
 
-    public DataVec3Simple(Vec3 position, Vec3 speed, float g, float f) {
-        this.position = position;
+    public DataVec3Simple(Vec3 vec3, Vec3 speed, float g, float f) {
+        this.vec3 = vec3;
         this.speed = speed;
         this.g = g;
         this.f = f;
     }
 
     public DataVec3Simple(DataInputStream dataInputStream) throws IOException {
-        this.position = new Vec3(dataInputStream);
+        this.vec3 = new Vec3(dataInputStream);
         this.speed = new Vec3(dataInputStream);
         this.g = dataInputStream.readFloat();
         this.f = dataInputStream.readFloat();
@@ -39,7 +39,7 @@ public class DataVec3Simple extends DataVec3 {
     @Override
     public void writeToFile(DataOutputStream dataOutputStream) throws IOException {
         super.writeToFile(dataOutputStream);
-        position.writeToFile(dataOutputStream);
+        vec3.writeToFile(dataOutputStream);
         speed.writeToFile(dataOutputStream);
         dataOutputStream.writeFloat(g);
         dataOutputStream.writeFloat(f);
@@ -49,7 +49,7 @@ public class DataVec3Simple extends DataVec3 {
     public Vec3 getVec3(int tick, int age) {
         int lastMaxTick = cache.size() - 1;
         if (lastMaxTick <= tick) {
-            Pair<Vec3, Vec3> lastPair = lastMaxTick == -1 ? new Pair<>(position, speed) : cache.get(lastMaxTick);
+            Pair<Vec3, Vec3> lastPair = lastMaxTick == -1 ? new Pair<>(vec3, speed) : cache.get(lastMaxTick);
             float x = lastPair.first.x;
             float y = lastPair.first.y;
             float z = lastPair.first.z;

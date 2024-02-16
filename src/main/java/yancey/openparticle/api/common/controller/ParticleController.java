@@ -6,7 +6,11 @@ import yancey.openparticle.api.common.data.ParticleState;
 
 public interface ParticleController {
 
-    ParticleState getParticleState(int tick);
+    boolean isStatic();
+
+    void prepare(int tick);
+
+    ParticleState getParticleState();
 
     int getTickStart();
 

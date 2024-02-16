@@ -8,14 +8,14 @@ import java.io.IOException;
 
 public class DataVec3Static extends DataVec3 {
 
-    private final Vec3 position;
+    private final Vec3 vec3;
 
-    public DataVec3Static(Vec3 position) {
-        this.position = position;
+    public DataVec3Static(Vec3 vec3) {
+        this.vec3 = vec3;
     }
 
     public DataVec3Static(DataInputStream dataInputStream) throws IOException {
-        this.position = new Vec3(dataInputStream);
+        this.vec3 = new Vec3(dataInputStream);
     }
 
     protected byte getType() {
@@ -25,11 +25,16 @@ public class DataVec3Static extends DataVec3 {
     @Override
     public void writeToFile(DataOutputStream dataOutputStream) throws IOException {
         super.writeToFile(dataOutputStream);
-        position.writeToFile(dataOutputStream);
+        vec3.writeToFile(dataOutputStream);
     }
 
     @Override
     public Vec3 getVec3(int tick, int age) {
-        return position;
+        return vec3;
+    }
+
+    @Override
+    public Vec3 getCurrentStaticPosition() {
+        return vec3;
     }
 }
