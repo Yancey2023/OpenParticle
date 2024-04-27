@@ -47,7 +47,7 @@ public class GuiProgressBar extends Screen {
         renderBackground(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(textRenderer, title, width / 2, height / 2 - textRenderer.fontHeight - 20, 0xFFFFFFFF);
         if (progress > max || progress < 0) {
-            logger.warn("progress bar can't show,the max progress is " + max + ",but the progress " + progress);
+            logger.warn("progress bar can't show,the max progress is {},but the progress {}", max, progress);
             close();
             return;
         }

@@ -2,50 +2,47 @@ package yancey.openparticle.core.events;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
-import yancey.openparticle.core.core.RunningHandler;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class RunningEventManager implements ServerTickEvents.StartTick {
 
     public static final RunningEventManager INSTANCE = new RunningEventManager();
-    private final List<RunningHandler> runningHandlerList = new ArrayList<>();
-    private final List<RunningHandler> runningHandlerAddList = new ArrayList<>();
-    private final List<RunningHandler> runningHandlerRemoveList = new ArrayList<>();
 
     private RunningEventManager() {
         ServerTickEvents.START_SERVER_TICK.register(this);
     }
 
-    public void run(RunningHandler runningHandler) {
-        if (!runningHandlerAddList.contains(runningHandler)) {
-            runningHandlerAddList.add(runningHandler);
+    private final ReentrantLock lock = new ReentrantLock();
+    private Runnable runnable;
+
+    public void run(Runnable runnable) {
+        lock.lock();
+        try {
+            this.runnable = runnable;
+        } finally {
+            lock.unlock();
         }
     }
 
-    public void stop(RunningHandler runningHandler) {
-        if (!runningHandlerRemoveList.contains(runningHandler)) {
-            runningHandlerRemoveList.add(runningHandler);
+    public void stop() {
+        lock.lock();
+        try {
+            this.runnable = null;
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
     public void onStartTick(MinecraftServer server) {
-        if (!runningHandlerRemoveList.isEmpty()) {
-            runningHandlerList.removeAll(runningHandlerRemoveList);
-            runningHandlerRemoveList.clear();
-        }
-        if (!runningHandlerAddList.isEmpty()) {
-            runningHandlerList.addAll(runningHandlerAddList);
-            runningHandlerAddList.clear();
-        }
-        for (RunningHandler runningHandler : runningHandlerList) {
-            if (runningHandler.isRunning) {
-                runningHandler.runPerTick();
-            } else {
-                runningHandler.stop();
+        lock.lock();
+        try {
+            if (runnable != null) {
+                runnable.run();
             }
+        } finally {
+            lock.unlock();
         }
     }
 }

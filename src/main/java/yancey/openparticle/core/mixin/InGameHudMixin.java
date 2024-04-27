@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import yancey.openparticle.core.OpenParticle;
+import yancey.openparticle.core.core.OpenParticleCore;
 
 @Mixin(InGameHud.class)
 public class InGameHudMixin {
@@ -16,8 +17,10 @@ public class InGameHudMixin {
         if (OpenParticle.isDebug) {
             MinecraftClient client = MinecraftClient.getInstance();
             if (!client.options.hudHidden && !client.getDebugHud().shouldShowDebugHud()) {
-                String text = ((MinecraftClientAccessor) client).getCurrentFps() + " FPS";
-                context.drawText(client.textRenderer, text, 5, 7, 0xFFFFFFFF, false);
+                String textFPS = "FPS: " + ((MinecraftClientAccessor) client).getCurrentFps();
+                context.drawText(client.textRenderer, textFPS, 5, 7, 0xFFFFFFFF, false);
+                String textParticleCount = "P: " + OpenParticleCore.getParticleSize();
+                context.drawText(client.textRenderer, textParticleCount, 5, 7 + client.textRenderer.fontHeight, 0xFFFFFFFF, false);
             }
         }
     }

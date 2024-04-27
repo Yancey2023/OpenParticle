@@ -20,7 +20,7 @@ import static yancey.openparticle.core.OpenParticle.MOD_ID;
 public class NetworkHandler {
 
     public static final Identifier ID_KEY_BOARD = new Identifier(MOD_ID, "key_board");
-    public static final Identifier ID_SUMMON_PARTICLE = new Identifier(MOD_ID, "summon_particle");
+    public static final Identifier ID_RUN_TICK = new Identifier(MOD_ID, "run_tick");
     public static final Identifier ID_LOAD = new Identifier(MOD_ID, "load_in_client");
     public static final Identifier ID_RUN = new Identifier(MOD_ID, "run_in_client");
     public static final Identifier ID_LOAD_AND_RUN = new Identifier(MOD_ID, "load_and_run_in_client");
@@ -38,29 +38,29 @@ public class NetworkHandler {
 
     @Environment(EnvType.CLIENT)
     public static void initClient() {
-        //生成粒子
-        ClientPlayNetworking.registerGlobalReceiver(ID_SUMMON_PARTICLE, (client, handler, buf, responseSender) -> {
+        //运行指定tick的粒子
+        ClientPlayNetworking.registerGlobalReceiver(ID_RUN_TICK, (client, handler, buf, responseSender) -> {
             if (handler.getWorld() != null) {
                 String path = buf.readString();
                 int tick = buf.readInt();
-                OpenParticleCore.runTick(path.isEmpty() ? null : path, handler.getWorld(), tick);
+                OpenParticleCore.runTick(path.isEmpty() ? null : path, tick);
             }
         });
         //加载并运行粒子文件
-        ClientPlayNetworking.registerGlobalReceiver(ID_LOAD_AND_RUN, (client, handler, buf, responseSender) -> {
-            if (handler.getWorld() != null) {
-                OpenParticleCore.loadAndRun(buf.readString(), handler.getWorld());
-            }
-        });
+//        ClientPlayNetworking.registerGlobalReceiver(ID_LOAD_AND_RUN, (client, handler, buf, responseSender) -> {
+//            if (handler.getWorld() != null) {
+//                OpenParticleCore.loadAndRun(buf.readString(), handler.getWorld());
+//            }
+//        });
         //加载粒子文件
-        ClientPlayNetworking.registerGlobalReceiver(ID_LOAD, (client, handler, buf, responseSender) ->
-                OpenParticleCore.loadFile(buf.readString()));
+//        ClientPlayNetworking.registerGlobalReceiver(ID_LOAD, (client, handler, buf, responseSender) ->
+//                OpenParticleCore.loadFile(buf.readString()));
         //运行粒子文件
-        ClientPlayNetworking.registerGlobalReceiver(ID_RUN, (client, handler, buf, responseSender) -> {
-            if (handler.getWorld() != null) {
-                OpenParticleCore.run(OpenParticleCore.lastPath, handler.getWorld());
-            }
-        });
+//        ClientPlayNetworking.registerGlobalReceiver(ID_RUN, (client, handler, buf, responseSender) -> {
+//            if (handler.getWorld() != null) {
+//                OpenParticleCore.run(OpenParticleCore.lastPath, handler.getWorld());
+//            }
+//        });
     }
 
     @Environment(EnvType.CLIENT)
@@ -74,13 +74,13 @@ public class NetworkHandler {
         ClientPlayNetworking.send(ID_KEY_BOARD, buf);
     }
 
-    public static void summonParticle(ServerWorld world, String path, int tick) {
+    public static void runTick(ServerWorld world, String path, int tick) {
         //生成粒子
         PacketByteBuf packetByteBuf = PacketByteBufs.create();
         packetByteBuf.writeString(Objects.requireNonNullElse(path, ""));
         packetByteBuf.writeInt(tick);
         for (ServerPlayerEntity serverPlayerEntity : world.getServer().getPlayerManager().getPlayerList()) {
-            ServerPlayNetworking.send(serverPlayerEntity, ID_SUMMON_PARTICLE, packetByteBuf);
+            ServerPlayNetworking.send(serverPlayerEntity, ID_RUN_TICK, packetByteBuf);
         }
     }
 }

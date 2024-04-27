@@ -4,6 +4,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import org.lwjgl.glfw.GLFW;
 import yancey.openparticle.core.core.OpenParticleCore;
 import yancey.openparticle.core.mixin.KeyBindingAccessor;
@@ -20,7 +21,7 @@ public class KeyboardManager {
 
     public static void init(boolean isClient) {
         register(isClient, "run", GLFW.GLFW_KEY_V, true,
-                playerEntity -> OpenParticleCore.run(OpenParticleCore.lastPath, playerEntity.getWorld())
+                playerEntity -> OpenParticleCore.run((ServerWorld) playerEntity.getWorld())
         );
         if (!isClient) {
             return;

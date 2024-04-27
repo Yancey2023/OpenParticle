@@ -9,14 +9,9 @@ import java.nio.ByteBuffer;
 
 @Mixin(BufferBuilder.class)
 public interface BufferBuilderAccessor {
-    @Accessor
-    int getElementOffset();
 
     @Accessor
     void setElementOffset(int elementOffset);
-
-    @Accessor
-    int getVertexCount();
 
     @Accessor
     void setVertexCount(int vertexCount);

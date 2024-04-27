@@ -12,6 +12,7 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import yancey.openparticle.core.core.OpenParticleCore;
@@ -35,7 +36,7 @@ public class CommandPar {
             builder.requires(source -> source.hasPermissionLevel(2));
         } else {
             builder.then(literal.apply("stop").executes(context -> {
-                OpenParticleCore.clearParticle();
+                OpenParticleCore.stop();
                 return 1;
             }));
         }
@@ -77,13 +78,17 @@ public class CommandPar {
             } else {
                 throw new RuntimeException("unknown command source");
             }
+            if (world.isClient) {
+                return -1;
+            }
+            ServerWorld serverWorld = (ServerWorld) world;
             boolean isSuccess = true;
             if (identifier == NetworkHandler.ID_LOAD) {
                 isSuccess = OpenParticleCore.loadFile(path);
             } else if (identifier == NetworkHandler.ID_RUN) {
-                OpenParticleCore.run(OpenParticleCore.lastPath, world);
+                OpenParticleCore.run(serverWorld);
             } else if (identifier == NetworkHandler.ID_LOAD_AND_RUN) {
-                isSuccess = OpenParticleCore.loadAndRun(path, world);
+                isSuccess = OpenParticleCore.loadAndRun(path, serverWorld);
             } else {
                 throw new RuntimeException("unknown identifier -> " + identifier);
             }
