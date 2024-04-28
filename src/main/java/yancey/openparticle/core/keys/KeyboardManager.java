@@ -3,12 +3,13 @@ package yancey.openparticle.core.keys;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import org.lwjgl.glfw.GLFW;
 import yancey.openparticle.core.core.OpenParticleCore;
 import yancey.openparticle.core.mixin.KeyBindingAccessor;
-import yancey.openparticle.core.network.NetworkHandler;
+import yancey.openparticle.core.network.KeyboardPayloadC2S;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +52,7 @@ public class KeyboardManager {
                 }
             }
             if (idList != null) {
-                NetworkHandler.keyBoardToServer(idList);
+                ClientPlayNetworking.send(new KeyboardPayloadC2S(idList));
             }
         });
     }
@@ -65,8 +66,8 @@ public class KeyboardManager {
         }
     }
 
-    public static void runInServe(int[] idList, ServerPlayerEntity entityPlayerMP) {
-        for (Integer id : idList) {
+    public static void runInServe(List<Integer> idList, ServerPlayerEntity entityPlayerMP) {
+        for (int id : idList) {
             onKeyPressedListenerList.get(id).onKeyPressed(entityPlayerMP);
         }
     }

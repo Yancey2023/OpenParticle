@@ -3,12 +3,14 @@ package yancey.openparticle.core.core;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.mixin.client.particle.ParticleManagerAccessor.SimpleSpriteProviderAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.particle.SpriteProvider;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.texture.Sprite;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Text;
@@ -22,7 +24,7 @@ import yancey.openparticle.api.common.nativecore.OpenParticleProject;
 import yancey.openparticle.core.events.RunningEventManager;
 import yancey.openparticle.core.mixin.BufferBuilderAccessor;
 import yancey.openparticle.core.mixin.ParticleManagerAccessor;
-import yancey.openparticle.core.network.NetworkHandler;
+import yancey.openparticle.core.network.RunTickPayloadS2C;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -60,6 +62,7 @@ public class OpenParticleCore {
     private OpenParticleCore() {
 
     }
+
     private static float lastRunTick = -1;
     private static float lastTickDelta = -1;
 
@@ -118,9 +121,12 @@ public class OpenParticleCore {
         RunningEventManager.INSTANCE.stop();
     }
 
-    public static void run(ServerWorld world) {
+    public static boolean run(ServerWorld world) {
         if (openParticleProject != null) {
             run(openParticleProject.path, world);
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -134,7 +140,10 @@ public class OpenParticleCore {
                     stop();
                     return;
                 }
-                NetworkHandler.runTick(world, path, nextTick++);
+                RunTickPayloadS2C payload = new RunTickPayloadS2C(path, nextTick++);
+                for (ServerPlayerEntity serverPlayerEntity : world.getServer().getPlayerManager().getPlayerList()) {
+                    ServerPlayNetworking.send(serverPlayerEntity, payload);
+                }
             } finally {
                 LOCK.unlock();
             }

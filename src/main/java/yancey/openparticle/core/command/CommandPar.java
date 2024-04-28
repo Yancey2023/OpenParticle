@@ -3,97 +3,36 @@ package yancey.openparticle.core.command;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
-import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.command.CommandSource;
-import net.minecraft.network.PacketByteBuf;
+import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
 import yancey.openparticle.core.core.OpenParticleCore;
-import yancey.openparticle.core.network.NetworkHandler;
 
-import java.util.function.Function;
+import static net.minecraft.server.command.CommandManager.argument;
+import static net.minecraft.server.command.CommandManager.literal;
 
 public class CommandPar {
 
-    public static <T extends CommandSource> void init(CommandDispatcher<T> dispatcher, boolean isInitInServer) {
-        if (isInitInServer) {
-            command(dispatcher, true, false);
-        }
-        command(dispatcher, isInitInServer, true);
+    public static void init(CommandDispatcher<ServerCommandSource> dispatcher) {
+        RequiredArgumentBuilder<ServerCommandSource, String> path = argument("path", StringArgumentType.greedyString());
+        dispatcher.register(literal("par")
+                .requires(source -> source.hasPermissionLevel(2))
+                .then(literal("loadAndRun").then(path.executes(context -> execute(context, true, true))))
+                .then(literal("load").then(path.executes(context -> execute(context, true, false))))
+                .then(literal("run").executes(context -> execute(context, false, true))));
     }
 
-    private static <T extends CommandSource> void command(CommandDispatcher<T> dispatcher, boolean isInitInServer, boolean isRunInClient) {
-        LiteralArgumentBuilder<T> builder = LiteralArgumentBuilder.literal(isRunInClient ? "parc" : "par");
-        Function<String, LiteralArgumentBuilder<T>> literal = LiteralArgumentBuilder::literal;
-        if (isInitInServer) {
-            builder.requires(source -> source.hasPermissionLevel(2));
-        } else {
-            builder.then(literal.apply("stop").executes(context -> {
-                OpenParticleCore.stop();
-                return 1;
-            }));
+    public static int execute(CommandContext<ServerCommandSource> context, boolean isLoad, boolean isRun) {
+        if (isLoad) {
+            String path = StringArgumentType.getString(context, "path");
+            if (!OpenParticleCore.loadFile(path)) {
+                return 2;
+            }
         }
-        RequiredArgumentBuilder<T, String> path = RequiredArgumentBuilder.argument("path", StringArgumentType.greedyString());
-        Function<Identifier, RequiredArgumentBuilder<T, String>> execute = identifier ->
-                path.executes(executeFile(identifier, isRunInClient));
-        dispatcher.register(builder
-                .then(literal.apply("loadAndRun")
-                        .then(execute.apply(NetworkHandler.ID_LOAD_AND_RUN)))
-                .then(literal.apply("load")
-                        .then(execute.apply(NetworkHandler.ID_LOAD)))
-                .then(literal.apply("run")
-                        .executes(executeFile(NetworkHandler.ID_RUN, isRunInClient)))
-        );
-    }
-
-    private static <T extends CommandSource> Command<T> executeFile(Identifier identifier, boolean isRunInClient) {
-        return context -> {
-            String path = null;
-            if (identifier != NetworkHandler.ID_RUN) {
-                path = StringArgumentType.getString(context, "path");
-            }
-            World world;
-            CommandSource source = context.getSource();
-            if (source instanceof FabricClientCommandSource clientCommandSource) {
-                world = clientCommandSource.getWorld();
-            } else if (source instanceof ServerCommandSource serverCommandSource) {
-                world = serverCommandSource.getWorld();
-                if (isRunInClient) {
-                    PacketByteBuf packetByteBuf = PacketByteBufs.create();
-                    if (path != null) {
-                        packetByteBuf.writeString(path);
-                    }
-                    for (ServerPlayerEntity serverPlayerEntity : serverCommandSource.getServer().getPlayerManager().getPlayerList()) {
-                        ServerPlayNetworking.send(serverPlayerEntity, identifier, packetByteBuf);
-                    }
-                    return 1;
-                }
-            } else {
-                throw new RuntimeException("unknown command source");
-            }
-            if (world.isClient) {
-                return -1;
-            }
-            ServerWorld serverWorld = (ServerWorld) world;
-            boolean isSuccess = true;
-            if (identifier == NetworkHandler.ID_LOAD) {
-                isSuccess = OpenParticleCore.loadFile(path);
-            } else if (identifier == NetworkHandler.ID_RUN) {
-                OpenParticleCore.run(serverWorld);
-            } else if (identifier == NetworkHandler.ID_LOAD_AND_RUN) {
-                isSuccess = OpenParticleCore.loadAndRun(path, serverWorld);
-            } else {
-                throw new RuntimeException("unknown identifier -> " + identifier);
-            }
-            return isSuccess ? 1 : -1;
-        };
+        if (isRun && !OpenParticleCore.run(context.getSource().getWorld())) {
+            return 3;
+        }
+        return Command.SINGLE_SUCCESS;
     }
 
 }

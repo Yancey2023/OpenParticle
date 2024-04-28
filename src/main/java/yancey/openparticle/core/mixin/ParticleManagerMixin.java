@@ -5,13 +5,13 @@ import net.minecraft.client.particle.ParticleManager;
 import net.minecraft.client.particle.ParticleTextureSheet;
 import net.minecraft.client.render.*;
 import net.minecraft.client.texture.TextureManager;
-import net.minecraft.client.util.math.MatrixStack;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import yancey.openparticle.core.core.OpenParticleCore;
 
 @Mixin(ParticleManager.class)
@@ -22,14 +22,10 @@ public abstract class ParticleManagerMixin {
     private TextureManager textureManager;
 
 
-    @Inject(method = "renderParticles", at = @At(value = "HEAD"))
-    private void injectRenderParticles(MatrixStack matrices, VertexConsumerProvider.Immediate vertexConsumers, LightmapTextureManager lightmapTextureManager, Camera camera, float tickDelta, CallbackInfo ci) {
+    @Inject(method = "renderParticles", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;depthMask(Z)V", shift = At.Shift.BEFORE))
+    private void injectRenderParticles(LightmapTextureManager lightmapTextureManager, Camera camera, float tickDelta, CallbackInfo ci) {
         lightmapTextureManager.enable();
         RenderSystem.enableDepthTest();
-        MatrixStack matrixStack = RenderSystem.getModelViewStack();
-        matrixStack.push();
-        matrixStack.multiplyPositionMatrix(matrices.peek().getPositionMatrix());
-        RenderSystem.applyModelViewMatrix();
 
         RenderSystem.setShader(GameRenderer::getParticleProgram);
         Tessellator tessellator = Tessellator.getInstance();
@@ -38,8 +34,6 @@ public abstract class ParticleManagerMixin {
         OpenParticleCore.render(camera, tickDelta, bufferBuilder);
         ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT.draw(tessellator);
 
-        matrixStack.pop();
-        RenderSystem.applyModelViewMatrix();
         RenderSystem.depthMask(true);
         RenderSystem.disableBlend();
         lightmapTextureManager.disable();
@@ -48,6 +42,11 @@ public abstract class ParticleManagerMixin {
     @Inject(method = "tick", at = @At(value = "RETURN"))
     private void injectTick(CallbackInfo ci) {
         OpenParticleCore.tick();
+    }
+
+    @Inject(method = "getDebugString", at = @At(value = "RETURN"), cancellable = true)
+    private void injectGetDebugString(CallbackInfoReturnable<String> cir) {
+        cir.setReturnValue(String.valueOf(Integer.parseInt(cir.getReturnValue()) + OpenParticleCore.getParticleSize()));
     }
 
 }
