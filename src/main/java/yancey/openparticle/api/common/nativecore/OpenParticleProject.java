@@ -84,8 +84,8 @@ public class OpenParticleProject implements Closeable {
     private native static void render(long pointer, Buffer directBuffer, boolean isSingleThread, float tickDelta, float cameraX, float cameraY, float cameraZ, float rx, float ry, float rz, float rw);
 
     public void tick(int tick) {
-        if (tick < 0 || tick > tickEnd) {
-            throw new RuntimeException("Tick out of range: " + tick);
+        if (tick < 0) {
+            throw new RuntimeException("Tick should be a positive number: " + tick);
         }
         lock.lock();
         try {
@@ -152,7 +152,7 @@ public class OpenParticleProject implements Closeable {
     public void close() {
         lock.lock();
         try {
-            if (particleDataPointer != 0) {
+            if (particleDataPointer == 0) {
                 return;
             }
             release(particleDataPointer);

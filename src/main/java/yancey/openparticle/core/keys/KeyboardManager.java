@@ -5,14 +5,14 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import org.lwjgl.glfw.GLFW;
-import yancey.openparticle.core.core.OpenParticleCore;
+import yancey.openparticle.core.core.OpenParticleServerCore;
 import yancey.openparticle.core.mixin.KeyBindingAccessor;
 import yancey.openparticle.core.network.KeyboardPayloadC2S;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class KeyboardManager {
 
@@ -22,8 +22,7 @@ public class KeyboardManager {
 
     public static void init(boolean isClient) {
         register(isClient, "run", GLFW.GLFW_KEY_V, true,
-                playerEntity -> OpenParticleCore.run((ServerWorld) playerEntity.getWorld())
-        );
+                playerEntity -> OpenParticleServerCore.run(Objects.requireNonNull(playerEntity.getServer())));
         if (!isClient) {
             return;
         }

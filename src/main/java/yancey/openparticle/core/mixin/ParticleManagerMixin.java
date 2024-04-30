@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import yancey.openparticle.core.core.OpenParticleCore;
+import yancey.openparticle.core.core.OpenParticleClientCore;
 
 @Mixin(ParticleManager.class)
 public abstract class ParticleManagerMixin {
@@ -31,7 +31,7 @@ public abstract class ParticleManagerMixin {
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferBuilder = tessellator.getBuffer();
         ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT.begin(bufferBuilder, textureManager);
-        OpenParticleCore.render(camera, tickDelta, bufferBuilder);
+        OpenParticleClientCore.render(camera, tickDelta, bufferBuilder);
         ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT.draw(tessellator);
 
         RenderSystem.depthMask(true);
@@ -41,12 +41,12 @@ public abstract class ParticleManagerMixin {
 
     @Inject(method = "tick", at = @At(value = "RETURN"))
     private void injectTick(CallbackInfo ci) {
-        OpenParticleCore.tick();
+        OpenParticleClientCore.tick();
     }
 
     @Inject(method = "getDebugString", at = @At(value = "RETURN"), cancellable = true)
     private void injectGetDebugString(CallbackInfoReturnable<String> cir) {
-        cir.setReturnValue(String.valueOf(Integer.parseInt(cir.getReturnValue()) + OpenParticleCore.getParticleSize()));
+        cir.setReturnValue(String.valueOf(Integer.parseInt(cir.getReturnValue()) + OpenParticleClientCore.getParticleSize()));
     }
 
 }

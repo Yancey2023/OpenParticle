@@ -13,18 +13,18 @@ public record RunTickPayloadS2C(String path, int tick) implements CustomPayload 
     public static final PacketCodec<RegistryByteBuf, RunTickPayloadS2C> CODEC = new PacketCodec<>() {
         @Override
         public RunTickPayloadS2C decode(RegistryByteBuf buf) {
-            return new RunTickPayloadS2C(buf.readString(), buf.readInt());
+            return new RunTickPayloadS2C(buf.readString(), buf.readVarInt());
         }
 
         @Override
         public void encode(RegistryByteBuf buf, RunTickPayloadS2C value) {
             buf.writeString(value.path);
-            buf.writeInt(value.tick);
+            buf.writeVarInt(value.tick);
         }
     };
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Id<RunTickPayloadS2C> getId() {
         return ID;
     }
 

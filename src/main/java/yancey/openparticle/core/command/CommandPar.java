@@ -6,7 +6,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.server.command.ServerCommandSource;
-import yancey.openparticle.core.core.OpenParticleCore;
+import yancey.openparticle.core.core.OpenParticleServerCore;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -25,11 +25,13 @@ public class CommandPar {
     public static int execute(CommandContext<ServerCommandSource> context, boolean isLoad, boolean isRun) {
         if (isLoad) {
             String path = StringArgumentType.getString(context, "path");
-            if (!OpenParticleCore.loadFile(path)) {
-                return 2;
+            if (isRun) {
+                OpenParticleServerCore.loadAndRun(context.getSource().getServer(), path);
+            } else {
+                OpenParticleServerCore.loadFile(context.getSource().getServer(), path);
             }
-        }
-        if (isRun && !OpenParticleCore.run(context.getSource().getWorld())) {
+        } else if (isRun) {
+            OpenParticleServerCore.run(context.getSource().getServer());
             return 3;
         }
         return Command.SINGLE_SUCCESS;
