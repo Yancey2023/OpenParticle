@@ -51,49 +51,19 @@ public class OpenParticleClientCore {
         return result;
     };
     private static final ReentrantLock LOCK = new ReentrantLock();
+    //用来防止同一次渲染中渲染方法被调用多次
     public static boolean inRendered = true;
     private static OpenParticleProject openParticleProject;
-    private static int nextTick = Integer.MAX_VALUE;
-    private static boolean isRunning = false;
+    public static int lastTick = -1;
+    public static boolean isRepeatTick = false;
     private static boolean isRendering = false;
 
     private OpenParticleClientCore() {
 
     }
-
-    public static void stop() {
-        isRunning = false;
-        nextTick = Integer.MAX_VALUE;
-        RunningEventManager.INSTANCE.stop();
-    }
-
-    public static boolean loadFile0(String path) {
-        stop();
-        if (openParticleProject != null) {
-            openParticleProject.close();
-        }
-        try {
-            openParticleProject = new OpenParticleProject(bridge, path);
-            return true;
-        } catch (Exception e) {
-            MinecraftClient client = MinecraftClient.getInstance();
-            if (!Files.exists(Path.of(path))) {
-                client.inGameHud.getChatHud().addMessage(Text.empty()
-                        .append(Text.literal("粒子文件加载失败(找不到文件: ").formatted(Formatting.RED))
-                        .append(Text.literal(path).formatted(Formatting.LIGHT_PURPLE))
-                        .append(Text.literal(")").formatted(Formatting.RED))
-                );
-            } else {
-                client.inGameHud.getChatHud().addMessage(Text.literal("粒子文件加载失败").formatted(Formatting.RED).styled(style -> {
-                    StringWriter stringWriter = new StringWriter();
-                    PrintWriter printWriter = new PrintWriter(stringWriter);
-                    e.printStackTrace(printWriter);
-                    return style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(stringWriter.toString()).formatted(Formatting.RED)));
-                }));
-            }
-            return false;
-        }
-    }
+    private static int nextTick;
+    //用来防止标记当前的运行情况
+    private static boolean isRunning = false;
 
     public static boolean loadFile(String path) {
         LOCK.lock();
@@ -168,26 +138,65 @@ public class OpenParticleClientCore {
         }
     }
 
+    private static void stop() {
+        isRunning = false;
+        isRendering = false;
+        RunningEventManager.INSTANCE.stop();
+    }
+
+    private static boolean loadFile0(String path) {
+        stop();
+        if (openParticleProject != null) {
+            openParticleProject.close();
+        }
+        if (!Files.exists(Path.of(path))) {
+            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.empty()
+                    .append(Text.literal("粒子文件加载失败(找不到文件: ").formatted(Formatting.RED))
+                    .append(Text.literal(path).formatted(Formatting.LIGHT_PURPLE))
+                    .append(Text.literal(")").formatted(Formatting.RED))
+            );
+            return false;
+        }
+        try {
+            openParticleProject = new OpenParticleProject(bridge, path);
+            return true;
+        } catch (Exception e) {
+            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.literal("粒子文件加载失败").formatted(Formatting.RED).styled(style -> {
+                StringWriter stringWriter = new StringWriter();
+                PrintWriter printWriter = new PrintWriter(stringWriter);
+                e.printStackTrace(printWriter);
+                return style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(stringWriter.toString()).formatted(Formatting.RED)));
+            }));
+            return false;
+        }
+    }
+
     public static void tick() {
         LOCK.lock();
         try {
+            isRepeatTick = false;
             if (openParticleProject != null && isRunning) {
-                openParticleProject.tick(nextTick);
+                if (lastTick != nextTick) {
+                    openParticleProject.tick(nextTick);
+                } else {
+                    isRepeatTick = true;
+                }
                 isRendering = true;
             } else {
                 isRendering = false;
             }
+            lastTick = nextTick;
         } finally {
             LOCK.unlock();
         }
     }
 
     public static void render(Camera camera, float tickDelta, BufferBuilder bufferBuilder) {
-        if (inRendered) {
-            return;
-        }
         LOCK.lock();
         try {
+            if (inRendered) {
+                return;
+            }
             inRendered = true;
             if (openParticleProject == null || !isRunning || !isRendering) {
                 return;
@@ -202,7 +211,7 @@ public class OpenParticleClientCore {
             Quaternionf rotation = camera.getRotation();
             openParticleProject.render(
                     ((BufferBuilderAccessor) bufferBuilder).getBuffer(),
-                    true, tickDelta,
+                    true, isRepeatTick ? 1 : tickDelta,
                     (float) pos.x, (float) pos.y, (float) pos.z,
                     rotation.x, rotation.y, rotation.z, rotation.w
             );

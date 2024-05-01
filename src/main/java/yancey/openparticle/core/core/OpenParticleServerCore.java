@@ -23,11 +23,8 @@ public class OpenParticleServerCore {
 
     }
 
-    public static void stop(MinecraftServer server) {
+    public static void stop() {
         RunningEventManager.INSTANCE.stop();
-        if (path != null) {
-            runTick(server, tickEnd);
-        }
     }
 
     public static void loadFile(MinecraftServer server, String path) {
@@ -55,7 +52,7 @@ public class OpenParticleServerCore {
     }
 
     public static void run(MinecraftServer server, String path, int tickEnd) {
-        stop(server);
+        stop();
         if (!Objects.equals(OpenParticleServerCore.path, path)) {
             loadAndRun(server, path);
             return;
@@ -64,7 +61,8 @@ public class OpenParticleServerCore {
         OpenParticleServerCore.tickEnd = tickEnd;
         RunningEventManager.INSTANCE.run(() -> {
             if (OpenParticleServerCore.path == null || nextTick > OpenParticleServerCore.tickEnd) {
-                stop(server);
+                runTick(server, OpenParticleServerCore.tickEnd);
+                stop();
                 return;
             }
             runTick(server, nextTick);
