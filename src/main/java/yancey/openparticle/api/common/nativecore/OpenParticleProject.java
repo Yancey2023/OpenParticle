@@ -90,7 +90,7 @@ public class OpenParticleProject implements Closeable {
         lock.lock();
         try {
             if (particleDataPointer == 0) {
-                throw new RuntimeException("open particle project native pointer is null pointer");
+                throw new RuntimeException("open particle project is closed");
             }
             currentParticleCount = -1;
             prepareTickCache(particleDataPointer, tick);
@@ -103,7 +103,7 @@ public class OpenParticleProject implements Closeable {
         lock.lock();
         try {
             if (particleDataPointer == 0) {
-                throw new RuntimeException("open particle project native pointer is null pointer");
+                return 0;
             }
             if (currentParticleCount < 0) {
                 currentParticleCount = getParticleCount(particleDataPointer);
@@ -119,7 +119,7 @@ public class OpenParticleProject implements Closeable {
         lock.lock();
         try {
             if (particleDataPointer == 0) {
-                throw new RuntimeException("open particle project native pointer is null pointer");
+                throw new RuntimeException("open particle project is closed");
             }
             return getVBOSize(particleDataPointer);
         } finally {
@@ -131,16 +131,16 @@ public class OpenParticleProject implements Closeable {
         if (!directBuffer.isDirect()) {
             throw new RuntimeException("buffer is not direct");
         }
-//        if (directBuffer.capacity() < getVBOSize()) {
-//            throw new RuntimeException("buffer is too small");
-//        }
+        if (directBuffer.capacity() < getVBOSize()) {
+            throw new RuntimeException("buffer is too small");
+        }
         if (tickDelta < 0 || tickDelta > 1) {
             throw new RuntimeException("Tick delta out of range: " + tickDelta);
         }
         lock.lock();
         try {
             if (particleDataPointer == 0) {
-                throw new RuntimeException("open particle project native pointer is null pointer");
+                throw new RuntimeException("open particle project is closed");
             }
             render(particleDataPointer, directBuffer, isSingleThread, tickDelta, cameraX, cameraY, cameraZ, rx, ry, rz, rw);
         } finally {

@@ -22,7 +22,7 @@ public class KeyboardManager {
 
     public static void init(boolean isClient) {
         register(isClient, "run", GLFW.GLFW_KEY_V, true,
-                playerEntity -> OpenParticleServerCore.run(Objects.requireNonNull(playerEntity.getServer())));
+                playerEntity -> OpenParticleServerCore.run(Objects.requireNonNull(playerEntity.getServer()), true));
         if (!isClient) {
             return;
         }
