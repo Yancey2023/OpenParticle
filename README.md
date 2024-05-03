@@ -9,22 +9,39 @@ The particle kernel is made by C++ and has ultimate performance.
 
 ## Command
 
-load particle in file:
+load particle file:
 
 ```mcfunction
-par load path_to_your_file
+par load <path>
 ```
 
 run particle:
 
 ```mcfunction
-par run
+par run [isSingleThread]
 ```
 
-load particle in file and run it:
+load particle file and run it:
 
 ```mcfunction
-par loadAndRun path_to_your_file
+par loadAndRun <isSingleThread> <path>
+```
+
+## params
+
+`path` - path to your particle file
+
+`isSingleThread` - if it prepares VBO data in single thread when rendering
+
+## examples
+
+```mcfunction
+par load D:\PyCharm\project\OpenParticleAPI-py\output\1.par
+par run
+par run true
+par run false
+par loadAndRun false D:\PyCharm\project\OpenParticleAPI-py\output\1.par
+par loadAndRun true D:\PyCharm\project\OpenParticleAPI-py\output\1.par
 ```
 
 ## How to create a particle file
