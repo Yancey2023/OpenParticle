@@ -57,11 +57,14 @@ public class OpenParticleClientCore {
     public static int lastTick = -1;
     public static boolean isRepeatTick = false;
     private static boolean isRendering = false;
+    private static boolean isSingleThread = true;
 
     private OpenParticleClientCore() {
 
     }
+
     private static int nextTick;
+    private static boolean nextIsSingleThread = true;
     //用来防止标记当前的运行情况
     private static boolean isRunning = false;
 
@@ -87,13 +90,13 @@ public class OpenParticleClientCore {
         }
     }
 
-    public static void loadAndRun(String path) {
+    public static void loadAndRun(String path, boolean isSingleThread) {
         if (loadFile(path)) {
-            run(path);
+            run(path, isSingleThread);
         }
     }
 
-    public static void run(String path) {
+    public static void run(String path, boolean isSingleThread) {
         LOCK.lock();
         try {
             if (openParticleProject == null || openParticleProject.path == null || !Objects.equals(openParticleProject.path, path)) {
@@ -101,13 +104,13 @@ public class OpenParticleClientCore {
                     return;
                 }
             }
-            ClientPlayNetworking.send(new RunPayloadC2S(openParticleProject.path, openParticleProject.tickEnd));
+            ClientPlayNetworking.send(new RunPayloadC2S(openParticleProject.path, openParticleProject.tickEnd, isSingleThread));
         } finally {
             LOCK.unlock();
         }
     }
 
-    public static void runTick(String path, int tick) {
+    public static void runTick(String path, int tick, boolean isSingleThread) {
         LOCK.lock();
         try {
             if (openParticleProject == null || !Objects.equals(openParticleProject.path, path)) {
@@ -122,6 +125,7 @@ public class OpenParticleClientCore {
                 isRendering = false;
                 return;
             }
+            OpenParticleClientCore.isSingleThread = isSingleThread;
             nextTick = tick;
             isRunning = true;
         } finally {
@@ -148,6 +152,7 @@ public class OpenParticleClientCore {
         stop();
         if (openParticleProject != null) {
             openParticleProject.close();
+            openParticleProject = null;
         }
         if (!Files.exists(Path.of(path))) {
             MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.empty()
@@ -185,6 +190,7 @@ public class OpenParticleClientCore {
             } else {
                 isRendering = false;
             }
+            nextIsSingleThread = isSingleThread;
             lastTick = nextTick;
         } finally {
             LOCK.unlock();
@@ -211,7 +217,7 @@ public class OpenParticleClientCore {
             Quaternionf rotation = camera.getRotation();
             openParticleProject.render(
                     ((BufferBuilderAccessor) bufferBuilder).getBuffer(),
-                    true, isRepeatTick ? 1 : tickDelta,
+                    nextIsSingleThread, isRepeatTick ? 1 : tickDelta,
                     (float) pos.x, (float) pos.y, (float) pos.z,
                     rotation.x, rotation.y, rotation.z, rotation.w
             );

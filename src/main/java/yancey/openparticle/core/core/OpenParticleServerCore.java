@@ -34,47 +34,48 @@ public class OpenParticleServerCore {
         }
     }
 
-    public static void loadAndRun(MinecraftServer server, String path) {
+    public static void loadAndRun(MinecraftServer server, String path, boolean isSingleThread) {
         OpenParticleServerCore.path = Objects.requireNonNull(path);
-        for (ServerPlayerEntity serverPlayerEntity : server.getPlayerManager().getPlayerList()) {
-            ServerPlayNetworking.send(serverPlayerEntity, new LoadAndRunPayloadS2C(path));
-        }
-    }
-
-    public static void run(MinecraftServer server) {
-        if (OpenParticleServerCore.path == null) {
-            return;
-        }
-        RunPayloadS2C payload = new RunPayloadS2C(path);
+        LoadAndRunPayloadS2C payload = new LoadAndRunPayloadS2C(path, isSingleThread);
         for (ServerPlayerEntity serverPlayerEntity : server.getPlayerManager().getPlayerList()) {
             ServerPlayNetworking.send(serverPlayerEntity, payload);
         }
     }
 
-    public static void run(MinecraftServer server, String path, int tickEnd) {
+    public static void run(MinecraftServer server, boolean isSingleThread) {
+        if (OpenParticleServerCore.path == null) {
+            return;
+        }
+        RunPayloadS2C payload = new RunPayloadS2C(path, isSingleThread);
+        for (ServerPlayerEntity serverPlayerEntity : server.getPlayerManager().getPlayerList()) {
+            ServerPlayNetworking.send(serverPlayerEntity, payload);
+        }
+    }
+
+    public static void run(MinecraftServer server, String path, int tickEnd, boolean isSingleThread) {
         stop();
         if (!Objects.equals(OpenParticleServerCore.path, path)) {
-            loadAndRun(server, path);
+            loadAndRun(server, path, isSingleThread);
             return;
         }
         nextTick = 0;
         OpenParticleServerCore.tickEnd = tickEnd;
         RunningEventManager.INSTANCE.run(() -> {
             if (OpenParticleServerCore.path == null || nextTick > OpenParticleServerCore.tickEnd) {
-                runTick(server, OpenParticleServerCore.tickEnd);
+                runTick(server, OpenParticleServerCore.tickEnd, isSingleThread);
                 stop();
                 return;
             }
-            runTick(server, nextTick);
+            runTick(server, nextTick, isSingleThread);
             nextTick++;
         });
     }
 
-    public static void runTick(MinecraftServer server, int tick) {
+    public static void runTick(MinecraftServer server, int tick, boolean isSingleThread) {
         if (OpenParticleServerCore.path == null) {
             return;
         }
-        RunTickPayloadS2C payload = new RunTickPayloadS2C(OpenParticleServerCore.path, tick);
+        RunTickPayloadS2C payload = new RunTickPayloadS2C(OpenParticleServerCore.path, tick, isSingleThread);
         for (ServerPlayerEntity serverPlayerEntity : server.getPlayerManager().getPlayerList()) {
             ServerPlayNetworking.send(serverPlayerEntity, payload);
         }

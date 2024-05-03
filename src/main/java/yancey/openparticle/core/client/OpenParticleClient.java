@@ -39,13 +39,13 @@ public class OpenParticleClient implements ClientModInitializer {
         }
         System.load(dest.toString());
         ClientPlayNetworking.registerGlobalReceiver(RunTickPayloadS2C.ID, (payload, context) ->
-                OpenParticleClientCore.runTick(payload.path(), payload.tick()));
+                OpenParticleClientCore.runTick(payload.path(), payload.tick(), payload.isSingleThread()));
         ClientPlayNetworking.registerGlobalReceiver(LoadAndRunPayloadS2C.ID, (payload, context) ->
-                OpenParticleClientCore.loadAndRun(payload.path()));
+                OpenParticleClientCore.loadAndRun(payload.path(), payload.isSingleThread()));
         ClientPlayNetworking.registerGlobalReceiver(LoadPayloadS2C.ID, (payload, context) ->
                 OpenParticleClientCore.loadFile(payload.path()));
         ClientPlayNetworking.registerGlobalReceiver(RunPayloadS2C.ID, (payload, context) ->
-                OpenParticleClientCore.run(payload.path()));
+                OpenParticleClientCore.run(payload.path(), payload.isSingleThread()));
         KeyboardManager.init(true);
     }
 }
