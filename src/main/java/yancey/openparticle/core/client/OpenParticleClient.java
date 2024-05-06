@@ -5,7 +5,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import org.slf4j.Logger;
-import yancey.openparticle.core.core.OpenParticleClientCore;
+import yancey.openparticle.core.client.core.OpenParticleClientCore;
 import yancey.openparticle.core.keys.KeyboardManager;
 import yancey.openparticle.core.network.LoadAndRunPayloadS2C;
 import yancey.openparticle.core.network.LoadPayloadS2C;
@@ -24,8 +24,9 @@ public class OpenParticleClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        URL source = Objects.requireNonNull(getClass().getClassLoader().getResource("native/libOpenParticle.dll"));
-        Path dest = MinecraftClient.getInstance().runDirectory.toPath().resolve("openparticle").resolve("libOpenParticle.dll");
+        String fileName = "libOpenParticle" + (System.getProperty("os.name").toLowerCase().contains("windows") ? "dll" : "so");
+        URL source = Objects.requireNonNull(getClass().getClassLoader().getResource("native/" + fileName));
+        Path dest = MinecraftClient.getInstance().runDirectory.toPath().resolve("openparticle").resolve(fileName);
         try {
             if (!Files.exists(dest.getParent())) {
                 Files.createDirectories(dest.getParent());

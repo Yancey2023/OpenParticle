@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import yancey.openparticle.core.core.OpenParticleClientCore;
+import yancey.openparticle.core.client.core.OpenParticleClientCore;
 
 @Mixin(WorldRenderer.class)
 public abstract class WorldRenderMixin {

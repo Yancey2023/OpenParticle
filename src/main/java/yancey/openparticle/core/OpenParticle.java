@@ -15,7 +15,6 @@ import yancey.openparticle.core.network.*;
 
 public class OpenParticle implements ModInitializer {
 
-    public static final boolean isDebug = true;
     public static final String MOD_ID = "openparticle";
 
     @Override
@@ -27,13 +26,11 @@ public class OpenParticle implements ModInitializer {
         PayloadTypeRegistry.playS2C().register(LoadPayloadS2C.ID, LoadPayloadS2C.CODEC);
         PayloadTypeRegistry.playS2C().register(RunPayloadS2C.ID, RunPayloadS2C.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(KeyboardPayloadC2S.ID, (payload, context) ->
-                context.player().server.execute(() ->
-                        KeyboardManager.runInServe(payload.idList(), context.player())));
-        ServerPlayNetworking.registerGlobalReceiver(RunPayloadC2S.ID,
-                (payload, context) -> OpenParticleServerCore.run(context.player().server, payload.path(), payload.tickEnd(), payload.isSingleThread()));
+                context.player().server.execute(() -> KeyboardManager.runInServe(payload.idList(), context.player())));
+        ServerPlayNetworking.registerGlobalReceiver(RunPayloadC2S.ID, (payload, context) ->
+                OpenParticleServerCore.run(context.player().server, payload.path(), payload.tickEnd(), payload.isSingleThread()));
         KeyboardManager.init(false);
         Registry.register(Registries.PARTICLE_TYPE, new Identifier(MOD_ID, "better_particle"), FabricParticleTypes.simple());
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-                CommandPar.init(dispatcher));
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> CommandPar.init(dispatcher));
     }
 }

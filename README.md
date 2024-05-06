@@ -50,4 +50,6 @@ par loadAndRun true D:\PyCharm\project\OpenParticleAPI-py\output\1.par
 
 [OpenParticle Python API](https://github.com/Yancey2023/OpenParticleAPI-py)
 
-Have fun!!!
+## Keys
+
+You can press `v` to run particle file. Of course, you can bind to other keys.

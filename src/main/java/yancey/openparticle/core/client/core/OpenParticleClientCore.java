@@ -1,4 +1,4 @@
-package yancey.openparticle.core.core;
+package yancey.openparticle.core.client.core;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
