@@ -1,5 +1,7 @@
+#ifdef __GNUC__
 #ifndef _GLIBCXX_HAS_GTHREADS
 #error you maybe forget add -pthread param when compiling in linux
+#endif
 #endif
 
 #include "../openparticle/ParticleManager.h"
@@ -75,8 +77,8 @@ int test1() {
 int test2() {
     std::string tickPath = R"(D:\CLion\project\OpenParticle\run\tick.txt)";
     std::string renderPath = R"(D:\CLion\project\OpenParticle\run\render.txt)";
-    //    std::string path = R"(D:\CLion\project\OpenParticle\run\1.par)";
-    std::string path = R"(D:\IDEA\project\others\OpenParticleAPI\run\activity1.par)";
+    std::string path = R"(D:\CLion\project\OpenParticle\run\1.par)";
+    //    std::string path = R"(/home/yancey/CLionProjects/OpenParticle/run/1.par)";
     std::chrono::high_resolution_clock::time_point start, end;
     start = std::chrono::high_resolution_clock::now();
     std::ifstream istream(path, std::ios::in | std::ios::binary);
@@ -129,11 +131,11 @@ int test2() {
         const int framePerTick = 4;
         for (int frame = 1; frame <= framePerTick; ++frame) {
             float tickDelta = (float) frame / framePerTick;
-            OpenParticle::ParticleRender::doRenderSingleThread(buffer, particleCount, tickDelta,
-                                                               0, 0, 0,
-                                                               0, 0, 0, 1,
-                                                               &lastTickCache,
-                                                               &tickCache);
+            OpenParticle::ParticleRender::doRenderMultiThread(buffer, particleCount, tickDelta,
+                                                              0, 0, 0,
+                                                              0, 0, 0, 1,
+                                                              &lastTickCache,
+                                                              &tickCache);
             fprintf(renderFile, "---- tick: %d (%.2f) ------\n", i, tickDelta);
             for (int j = 0; j < particleCount; ++j) {
                 fprintf(renderFile, "%d. ", j + 1);
@@ -166,5 +168,5 @@ int test2() {
 }
 
 int main() {
-    test1();
+    test2();
 }

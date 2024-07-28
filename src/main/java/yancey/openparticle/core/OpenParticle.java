@@ -4,10 +4,6 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
 import yancey.openparticle.core.command.CommandPar;
 import yancey.openparticle.core.core.OpenParticleServerCore;
 import yancey.openparticle.core.keys.KeyboardManager;
@@ -30,7 +26,6 @@ public class OpenParticle implements ModInitializer {
         ServerPlayNetworking.registerGlobalReceiver(RunPayloadC2S.ID, (payload, context) ->
                 OpenParticleServerCore.run(context.player().server, payload.path(), payload.tickEnd(), payload.isSingleThread()));
         KeyboardManager.init(false);
-        Registry.register(Registries.PARTICLE_TYPE, new Identifier(MOD_ID, "better_particle"), FabricParticleTypes.simple());
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> CommandPar.init(dispatcher));
     }
 }

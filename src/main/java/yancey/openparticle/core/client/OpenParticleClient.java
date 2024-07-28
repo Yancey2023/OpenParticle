@@ -3,6 +3,7 @@ package yancey.openparticle.core.client;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
 import org.slf4j.Logger;
 import yancey.openparticle.core.client.core.OpenParticleClientCore;
@@ -24,7 +25,7 @@ public class OpenParticleClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        String fileName = "libOpenParticle" + (System.getProperty("os.name").toLowerCase().contains("windows") ? "dll" : "so");
+        String fileName = "libOpenParticle-amd64." + (System.getProperty("os.name").toLowerCase().contains("windows") ? "dll" : "so");
         URL source = Objects.requireNonNull(getClass().getClassLoader().getResource("native/" + fileName));
         Path dest = MinecraftClient.getInstance().runDirectory.toPath().resolve("openparticle").resolve(fileName);
         try {
@@ -48,5 +49,6 @@ public class OpenParticleClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(RunPayloadS2C.ID, (payload, context) ->
                 OpenParticleClientCore.run(payload.path(), payload.isSingleThread()));
         KeyboardManager.init(true);
+        WorldRenderEvents.START.register(context -> OpenParticleClientCore.inRendered = false);
     }
 }

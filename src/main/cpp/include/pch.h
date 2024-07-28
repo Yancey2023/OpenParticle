@@ -13,7 +13,8 @@
 #include <memory>
 #include <fstream>
 #include <future>
-#include <Eigen/Core>
 #include <hedley.h>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #endif //OPENPARTICLE_PCH_H

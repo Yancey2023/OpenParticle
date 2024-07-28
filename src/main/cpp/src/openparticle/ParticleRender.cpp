@@ -6,14 +6,14 @@
 
 namespace OpenParticle::ParticleRender {
 
-    inline float lerp(float delta, float start, float end) {
+    float lerp(float delta, float start, float end) {
         return start + delta * (end - start);
     }
 
-    inline void vertex(uint8_t *buffer,
-                       float x, float y, float z,
-                       float u, float v,
-                       int32_t color) {
+    void vertex(uint8_t *buffer,
+                float x, float y, float z,
+                float u, float v,
+                int32_t color) {
 #if OpenParticleDebug == true
         if (buffer == nullptr) {
             throw std::runtime_error("buffer is nullptr");
@@ -59,28 +59,15 @@ namespace OpenParticle::ParticleRender {
         }
         if (HEDLEY_UNLIKELY(lastTickCache == nullptr)) {
             // it appears when current tick equal 0
-            return doRenderSingleThread(buffer, particleCount, tickDelta,
-                                        cameraX, cameraY, cameraZ,
-                                        rx, ry, rz, rw,
-                                        currentTickCache,
-                                        currentTickCache);
+            lastTickCache = currentTickCache;
         }
         // prepare render cache
-        float xx = rx * rx, yy = ry * ry, zz = rz * rz, ww = rw * rw;
-        float xy = rx * ry, xz = rx * rz, yz = ry * rz, xw = rx * rw;
-        float zw = rz * rw, yw = ry * rw, k = 1 / (xx + yy + zz + ww);
-        float a1 = (xx - yy - zz + ww) * k * -0.1F;
-        float b1 = 2 * (xy + zw) * k * -0.1F;
-        float c1 = 2 * (xz - yw) * k * -0.1F;
-        float a2 = 2 * (xy - zw) * k * 0.1F;
-        float b2 = (yy - xx - zz + ww) * k * 0.1F;
-        float c2 = 2 * (yz + xw) * k * 0.1F;
-        float cacheX1 = a1 - a2;
-        float cacheY1 = b1 - b2;
-        float cacheZ1 = c1 - c2;
-        float cacheX2 = a1 + a2;
-        float cacheY2 = b1 + b2;
-        float cacheZ2 = c1 + c2;
+        Eigen::Matrix3f matrix = Eigen::Quaternionf(rw, rx, ry, rz).matrix();
+        Eigen::Vector3f cache1 = matrix * Eigen::Vector3f(1, -1, 0);
+        Eigen::Vector3f cache2 = matrix * Eigen::Vector3f(1, 1, 0);
+        // TODO: every particle should have itself size, rather than 0.1125
+        Eigen::Vector3f cache3 = cache1 * 0.1125;
+        Eigen::Vector3f cache4 = cache2 * 0.1125;
         size_t size = currentTickCache->size();
 
         // render
@@ -91,7 +78,7 @@ namespace OpenParticle::ParticleRender {
             if (HEDLEY_UNLIKELY(item.has_value())) {
                 const SingleParticleNodeCache &currentTickData = item.value();
                 const std::optional<SingleParticleNodeCache> &lastTickItem = (*lastTickCache)[i];
-                if (lastTickItem.has_value()) {
+                if (HEDLEY_LIKELY(lastTickItem.has_value())) {
                     const SingleParticleNodeCache &lastTickData = lastTickItem.value();
                     dx = lerp(tickDelta, lastTickData.x, currentTickData.x) - cameraX;
                     dy = lerp(tickDelta, lastTickData.y, currentTickData.y) - cameraY;
@@ -103,26 +90,26 @@ namespace OpenParticle::ParticleRender {
                 }
                 auto *buffer0 = buffer + 112 * index++;
                 vertex(buffer0,
-                       cacheX1 + dx, cacheY1 + dy, cacheZ1 + dz,
+                       cache3.x() + dx, cache3.y() + dy, cache3.z() + dz,
                        currentTickData.sprite->maxU, currentTickData.sprite->maxV,
                        currentTickData.color);
                 vertex(buffer0 + 28,
-                       cacheX2 + dx, cacheY2 + dy, cacheZ2 + dz,
+                       cache4.x() + dx, cache4.y() + dy, cache4.z() + dz,
                        currentTickData.sprite->maxU, currentTickData.sprite->minV,
                        currentTickData.color);
                 vertex(buffer0 + 56,
-                       -cacheX1 + dx, -cacheY1 + dy, -cacheZ1 + dz,
+                       -cache3.x() + dx, -cache3.y() + dy, -cache3.z() + dz,
                        currentTickData.sprite->minU, currentTickData.sprite->minV,
                        currentTickData.color);
                 vertex(buffer0 + 84,
-                       -cacheX2 + dx, -cacheY2 + dy, -cacheZ2 + dz,
+                       -cache4.x() + dx, -cache4.y() + dy, -cache4.z() + dz,
                        currentTickData.sprite->minU, currentTickData.sprite->maxV,
                        currentTickData.color);
             }
         }
     }
 
-    void doRender(uint8_t *buffer, size_t particleCount, float tickDelta,
+    void doRenderMultiThread(uint8_t *buffer, size_t particleCount, float tickDelta,
                   float cameraX, float cameraY, float cameraZ,
                   float rx, float ry, float rz, float rw,
                   const std::vector<std::optional<SingleParticleNodeCache>> *lastTickCache,
@@ -144,33 +131,20 @@ namespace OpenParticle::ParticleRender {
         }
         if (HEDLEY_UNLIKELY(lastTickCache == nullptr)) {
             // it appears when current tick equal 0
-            return doRender(buffer, particleCount, tickDelta,
-                            cameraX, cameraY, cameraZ,
-                            rx, ry, rz, rw,
-                            currentTickCache,
-                            currentTickCache);
+            lastTickCache = currentTickCache;
         }
         // prepare render cache
-        float xx = rx * rx, yy = ry * ry, zz = rz * rz, ww = rw * rw;
-        float xy = rx * ry, xz = rx * rz, yz = ry * rz, xw = rx * rw;
-        float zw = rz * rw, yw = ry * rw, k = 1 / (xx + yy + zz + ww);
-        float a1 = (xx - yy - zz + ww) * k * -0.1F;
-        float b1 = 2 * (xy + zw) * k * -0.1F;
-        float c1 = 2 * (xz - yw) * k * -0.1F;
-        float a2 = 2 * (xy - zw) * k * 0.1F;
-        float b2 = (yy - xx - zz + ww) * k * 0.1F;
-        float c2 = 2 * (yz + xw) * k * 0.1F;
-        float cacheX1 = a1 - a2;
-        float cacheY1 = b1 - b2;
-        float cacheZ1 = c1 - c2;
-        float cacheX2 = a1 + a2;
-        float cacheY2 = b1 + b2;
-        float cacheZ2 = c1 + c2;
+        Eigen::Matrix3f matrix = Eigen::Quaternionf(rw, rx, ry, rz).matrix();
+        Eigen::Vector3f cache1 = matrix * Eigen::Vector3f(1, -1, 0);
+        Eigen::Vector3f cache2 = matrix * Eigen::Vector3f(1, 1, 0);
+        // TODO: every particle should have itself size, rather than 0.1125
+        Eigen::Vector3f cache3 = cache1 * 0.1125;
+        Eigen::Vector3f cache4 = cache2 * 0.1125;
         size_t size = currentTickCache->size();
 
         //assign tasks
         const unsigned int nThread = std::thread::hardware_concurrency();
-        Task tasks[nThread];
+        Task *tasks = new Task[nThread];
         size_t numsInEveryTask = particleCount / nThread;
         size_t currentTaskNums = numsInEveryTask;
         int32_t tasksIndex = -1;
@@ -201,7 +175,7 @@ namespace OpenParticle::ParticleRender {
         }
 
         //run render tasks
-        std::optional<std::future<void>> futures[nThread];
+        auto *futures = new std::optional<std::future<void>>[nThread];
         for (int i = 0; i < nThread; ++i) {
             const auto &task = tasks[i];
             if (task.buffer == nullptr) {
@@ -210,8 +184,7 @@ namespace OpenParticle::ParticleRender {
             }
             futures[i] = std::async([&task, &currentTickCache, &lastTickCache, tickDelta,
                                      cameraX, cameraY, cameraZ,
-                                     cacheX1, cacheY1, cacheZ1,
-                                     cacheX2, cacheY2, cacheZ2]() {
+                                     &cache3, &cache4]() {
                 size_t index = 0;
                 float dx, dy, dz;
                 for (size_t i = task.start; i < task.end; ++i) {
@@ -231,30 +204,33 @@ namespace OpenParticle::ParticleRender {
                         }
                         auto *buffer0 = task.buffer + 112 * index++;
                         vertex(buffer0,
-                               cacheX1 + dx, cacheY1 + dy, cacheZ1 + dz,
+                               cache3.x() + dx, cache3.y() + dy, cache3.z() + dz,
                                currentTickData.sprite->maxU, currentTickData.sprite->maxV,
                                currentTickData.color);
                         vertex(buffer0 + 28,
-                               cacheX2 + dx, cacheY2 + dy, cacheZ2 + dz,
+                               cache4.x() + dx, cache4.y() + dy, cache4.z() + dz,
                                currentTickData.sprite->maxU, currentTickData.sprite->minV,
                                currentTickData.color);
                         vertex(buffer0 + 56,
-                               -cacheX1 + dx, -cacheY1 + dy, -cacheZ1 + dz,
+                               -cache3.x() + dx, -cache3.y() + dy, -cache3.z() + dz,
                                currentTickData.sprite->minU, currentTickData.sprite->minV,
                                currentTickData.color);
                         vertex(buffer0 + 84,
-                               -cacheX2 + dx, -cacheY2 + dy, -cacheZ2 + dz,
+                               -cache4.x() + dx, -cache4.y() + dy, -cache4.z() + dz,
                                currentTickData.sprite->minU, currentTickData.sprite->maxV,
                                currentTickData.color);
                     }
                 }
             });
         }
-        for (auto &future: futures) {
+        for (int i = 0; i < nThread; ++i) {
+            std::optional<std::future<void>> &future = futures[i];
             if (future.has_value()) {
                 future->get();
             }
         }
+        delete[] tasks;
+        delete[] futures;
     }
 
 }// namespace OpenParticle::ParticleRender

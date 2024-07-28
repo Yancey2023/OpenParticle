@@ -67,7 +67,7 @@ namespace OpenParticle {
             delete particleTicker;
         }
 
-        inline int32_t getTickEnd() {
+        int32_t getTickEnd() {
             return particleTicker->root->tickEnd;
         }
 
@@ -168,11 +168,11 @@ namespace OpenParticle {
             return particleCounts[currentTick];
         }
 
-        inline int32_t getVBOSize() {
+        int32_t getVBOSize() {
             return 112 * getParticleCount();
         }
 
-        inline void doRender(bool isSingleThread, uint8_t *buffer, float tickDelta,
+        void doRender(bool isSingleThread, uint8_t *buffer, float tickDelta,
                              float cameraX, float cameraY, float cameraZ,
                              float rx, float ry, float rz, float rw) {
 #if OpenParticleDebug == true
@@ -190,11 +190,11 @@ namespace OpenParticle {
                                                      getTickCache(currentTick - 1),
                                                      getTickCache(currentTick));
             } else {
-                ParticleRender::doRender(buffer, getParticleCount(), tickDelta,
-                                         cameraX, cameraY, cameraZ,
-                                         rx, ry, rz, rw,
-                                         getTickCache(currentTick - 1),
-                                         getTickCache(currentTick));
+                ParticleRender::doRenderMultiThread(buffer, getParticleCount(), tickDelta,
+                                                    cameraX, cameraY, cameraZ,
+                                                    rx, ry, rz, rw,
+                                                    getTickCache(currentTick - 1),
+                                                    getTickCache(currentTick));
             }
         }
 

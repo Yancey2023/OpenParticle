@@ -21,18 +21,21 @@ public abstract class ParticleManagerMixin {
     @Final
     private TextureManager textureManager;
 
-
-    @Inject(method = "renderParticles", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;depthMask(Z)V", shift = At.Shift.BEFORE))
+    @Inject(method = "renderParticles", at = @At(value = "HEAD"))
     private void injectRenderParticles(LightmapTextureManager lightmapTextureManager, Camera camera, float tickDelta, CallbackInfo ci) {
         lightmapTextureManager.enable();
         RenderSystem.enableDepthTest();
 
         RenderSystem.setShader(GameRenderer::getParticleProgram);
         Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder bufferBuilder = tessellator.getBuffer();
-        ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT.begin(bufferBuilder, textureManager);
-        OpenParticleClientCore.render(camera, tickDelta, bufferBuilder);
-        ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT.draw(tessellator);
+        BufferBuilder bufferBuilder = ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT.begin(tessellator, textureManager);
+        if (bufferBuilder != null) {
+            OpenParticleClientCore.render(camera, tickDelta, bufferBuilder);
+            BuiltBuffer builtBuffer = bufferBuilder.endNullable();
+            if (builtBuffer != null) {
+                BufferRenderer.drawWithGlobalProgram(builtBuffer);
+            }
+        }
 
         RenderSystem.depthMask(true);
         RenderSystem.disableBlend();

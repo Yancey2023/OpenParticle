@@ -1,5 +1,7 @@
+#ifdef __GNUC__
 #ifndef _GLIBCXX_HAS_GTHREADS
 #error you maybe forget add -pthread param when compiling in linux
+#endif
 #endif
 
 #include "yancey_openparticle_api_common_nativecore_OpenParticleProject.h"
@@ -63,12 +65,21 @@ jint Java_yancey_openparticle_api_common_nativecore_OpenParticleProject_getVBOSi
     return reinterpret_cast<OpenParticle::ParticleManager<cacheSize> *>(particleManagerPointer)->getVBOSize();
 }
 
-void Java_yancey_openparticle_api_common_nativecore_OpenParticleProject_render(JNIEnv *env, jclass, jlong particleManagerPointer,
-                                                                               jobject directBuffer,
-                                                                               jboolean isSingleThread,
-                                                                               jfloat tickDelta,
-                                                                               jfloat cameraX, jfloat cameraY, jfloat cameraZ,
-                                                                               jfloat rx, jfloat ry, jfloat rz, jfloat rw) {
+void Java_yancey_openparticle_api_common_nativecore_OpenParticleProject_render__JLjava_nio_Buffer_2ZFFFFFFFF(JNIEnv *env, jclass, jlong particleManagerPointer,
+                                                                                                             jobject directBuffer,
+                                                                                                             jboolean isSingleThread,
+                                                                                                             jfloat tickDelta,
+                                                                                                             jfloat cameraX, jfloat cameraY, jfloat cameraZ,
+                                                                                                             jfloat rx, jfloat ry, jfloat rz, jfloat rw) {
     auto *buffer = static_cast<uint8_t *>(env->GetDirectBufferAddress(directBuffer));
     reinterpret_cast<OpenParticle::ParticleManager<cacheSize> *>(particleManagerPointer)->doRender(isSingleThread, buffer, tickDelta, cameraX, cameraY, cameraZ, rx, ry, rz, rw);
+}
+
+void Java_yancey_openparticle_api_common_nativecore_OpenParticleProject_render__JJZFFFFFFFF(JNIEnv *env, jclass, jlong particleManagerPointer,
+                                                                                            jlong bufferPointer,
+                                                                                            jboolean isSingleThread,
+                                                                                            jfloat tickDelta,
+                                                                                            jfloat cameraX, jfloat cameraY, jfloat cameraZ,
+                                                                                            jfloat rx, jfloat ry, jfloat rz, jfloat rw) {
+    reinterpret_cast<OpenParticle::ParticleManager<cacheSize> *>(particleManagerPointer)->doRender(isSingleThread, reinterpret_cast<uint8_t *>(bufferPointer), tickDelta, cameraX, cameraY, cameraZ, rx, ry, rz, rw);
 }

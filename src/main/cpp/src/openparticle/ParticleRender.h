@@ -15,11 +15,11 @@ namespace OpenParticle::ParticleRender {
                               const std::vector<std::optional<SingleParticleNodeCache>> *lastTickCache,
                               const std::vector<std::optional<SingleParticleNodeCache>> *currentTickCache);
 
-    void doRender(uint8_t *buffer, size_t particleCount, float tickDelta,
-                  float cameraX, float cameraY, float cameraZ,
-                  float rx, float ry, float rz, float rw,
-                  const std::vector<std::optional<SingleParticleNodeCache>> *lastTickCache,
-                  const std::vector<std::optional<SingleParticleNodeCache>> *currentTickCache);
+    void doRenderMultiThread(uint8_t *buffer, size_t particleCount, float tickDelta,
+                             float cameraX, float cameraY, float cameraZ,
+                             float rx, float ry, float rz, float rw,
+                             const std::vector<std::optional<SingleParticleNodeCache>> *lastTickCache,
+                             const std::vector<std::optional<SingleParticleNodeCache>> *currentTickCache);
 
 }// namespace OpenParticle::ParticleRender
 

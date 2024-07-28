@@ -4,16 +4,14 @@
   "package": "yancey.openparticle.core.mixin",
   "compatibilityLevel": "JAVA_17",
   "client": [
-    "KeyBindingAccessor",
     "ParticleManagerAccessor",
-    "ParticleManagerMixin",
-    "WorldRenderMixin"
+    "ParticleManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "mixins": [
     "BufferBuilderAccessor",
-    "MinecraftClientAccessor"
+    "SimpleSpriteProviderAccessor"
   ]
 }

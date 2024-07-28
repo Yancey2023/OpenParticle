@@ -10,7 +10,7 @@ extern "C" {
 /*
  * Class:     yancey_openparticle_api_common_nativecore_OpenParticleProject
  * Method:    readFile
- * Signature: (Ljava/lang/String;Lyancey/openparticle/extern/common/bridge/Bridge;)J
+ * Signature: (Ljava/lang/String;Lyancey/openparticle/api/common/nativecore/OpenParticleProject/Bridge;)J
  */
 JNIEXPORT jlong JNICALL Java_yancey_openparticle_api_common_nativecore_OpenParticleProject_readFile
   (JNIEnv *, jclass, jstring, jobject);
@@ -58,10 +58,18 @@ JNIEXPORT jint JNICALL Java_yancey_openparticle_api_common_nativecore_OpenPartic
 /*
  * Class:     yancey_openparticle_api_common_nativecore_OpenParticleProject
  * Method:    render
- * Signature: (JLjava/nio/Buffer;BFFFFFFFF)V
+ * Signature: (JLjava/nio/Buffer;ZFFFFFFFF)V
  */
-JNIEXPORT void JNICALL Java_yancey_openparticle_api_common_nativecore_OpenParticleProject_render
+JNIEXPORT void JNICALL Java_yancey_openparticle_api_common_nativecore_OpenParticleProject_render__JLjava_nio_Buffer_2ZFFFFFFFF
   (JNIEnv *, jclass, jlong, jobject, jboolean, jfloat, jfloat, jfloat, jfloat, jfloat, jfloat, jfloat, jfloat);
+
+/*
+ * Class:     yancey_openparticle_api_common_nativecore_OpenParticleProject
+ * Method:    render
+ * Signature: (JJZFFFFFFFF)V
+ */
+JNIEXPORT void JNICALL Java_yancey_openparticle_api_common_nativecore_OpenParticleProject_render__JJZFFFFFFFF
+  (JNIEnv *, jclass, jlong, jlong, jboolean, jfloat, jfloat, jfloat, jfloat, jfloat, jfloat, jfloat, jfloat);
 
 #ifdef __cplusplus
 }

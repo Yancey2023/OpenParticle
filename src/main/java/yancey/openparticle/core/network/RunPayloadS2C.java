@@ -9,7 +9,7 @@ import static yancey.openparticle.core.OpenParticle.MOD_ID;
 
 public record RunPayloadS2C(String path, boolean isSingleThread) implements CustomPayload {
 
-    public static final Id<RunPayloadS2C> ID = new Id<>(new Identifier(MOD_ID, "run_project"));
+    public static final Id<RunPayloadS2C> ID = new Id<>(Identifier.of(MOD_ID, "run_project"));
     public static final PacketCodec<RegistryByteBuf, RunPayloadS2C> CODEC = new PacketCodec<>() {
         @Override
         public RunPayloadS2C decode(RegistryByteBuf buf) {

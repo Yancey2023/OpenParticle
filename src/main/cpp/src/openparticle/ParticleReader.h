@@ -14,7 +14,7 @@ namespace OpenParticle {
 
         explicit DataReader(std::istream &istream);
 
-        inline bool readBoolean() {
+        bool readBoolean() {
             return readByte();
         }
 
@@ -47,7 +47,7 @@ namespace OpenParticle {
 
     Eigen::Matrix4f readMatrix(DataReader &dataReader);
 
-    inline static int32_t readColor(DataReader &dataReader) {
+    static int32_t readColor(DataReader &dataReader) {
         int32_t rgba = dataReader.readInt();
         return rgba << 8 | (rgba >> 24 & 0x000000FF);
     }
@@ -138,7 +138,7 @@ namespace OpenParticle {
         virtual ~Particle() = default;
     };
 
-    inline static Particle *
+    static Particle *
     readParticleId(DataReader &dataReader, const std::vector<std::unique_ptr<Particle>> &particles) {
         int32_t index = dataReader.readInt();
         if (index < 0 || index >= particles.size()) {

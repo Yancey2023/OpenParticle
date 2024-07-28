@@ -10,7 +10,7 @@ import static yancey.openparticle.core.OpenParticle.MOD_ID;
 
 public record LoadPayloadS2C(String path) implements CustomPayload {
 
-    public static final CustomPayload.Id<LoadPayloadS2C> ID = new CustomPayload.Id<>(new Identifier(MOD_ID, "load_project"));
+    public static final CustomPayload.Id<LoadPayloadS2C> ID = new CustomPayload.Id<>(Identifier.of(MOD_ID, "load_project"));
     public static final PacketCodec<RegistryByteBuf, LoadPayloadS2C> CODEC =
             PacketCodec.tuple(PacketCodecs.STRING, LoadPayloadS2C::path, LoadPayloadS2C::new);
 

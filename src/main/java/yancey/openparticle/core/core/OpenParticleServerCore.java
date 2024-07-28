@@ -1,7 +1,5 @@
 package yancey.openparticle.core.core;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -13,7 +11,6 @@ import yancey.openparticle.core.network.RunTickPayloadS2C;
 
 import java.util.Objects;
 
-@Environment(EnvType.CLIENT)
 public class OpenParticleServerCore {
 
     public static String path;

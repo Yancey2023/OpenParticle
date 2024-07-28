@@ -3,7 +3,6 @@ package yancey.openparticle.core.client.core;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.mixin.client.particle.ParticleManagerAccessor.SimpleSpriteProviderAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.particle.SpriteProvider;
 import net.minecraft.client.render.BufferBuilder;
@@ -20,6 +19,7 @@ import yancey.openparticle.api.common.nativecore.OpenParticleProject;
 import yancey.openparticle.core.events.RunningEventManager;
 import yancey.openparticle.core.mixin.BufferBuilderAccessor;
 import yancey.openparticle.core.mixin.ParticleManagerAccessor;
+import yancey.openparticle.core.mixin.SimpleSpriteProviderAccessor;
 import yancey.openparticle.core.network.RunPayloadC2S;
 
 import java.io.PrintWriter;
@@ -35,9 +35,9 @@ import java.util.concurrent.locks.ReentrantLock;
 public class OpenParticleClientCore {
 
     private static final Map<Identifier, SpriteProvider> spriteAwareFactories = ((ParticleManagerAccessor) MinecraftClient.getInstance().particleManager).getSpriteAwareFactories();
-    @SuppressWarnings("UnstableApiUsage")
+
     private static final OpenParticleProject.Bridge bridge = (namespace, value) -> {
-        SpriteProvider spriteProvider = spriteAwareFactories.get(new Identifier(namespace, value));
+        SpriteProvider spriteProvider = spriteAwareFactories.get(Identifier.of(namespace, value));
         List<Sprite> sprites = ((SimpleSpriteProviderAccessor) spriteProvider).getSprites();
         float[] result = new float[sprites.size() * 4];
         for (int i = 0; i < sprites.size(); i++) {
@@ -212,16 +212,16 @@ public class OpenParticleClientCore {
                 return;
             }
             int elementOffset = 112 * particleCount;
-            ((BufferBuilderAccessor) bufferBuilder).invokeGrow(elementOffset);
+            long pointer = ((BufferBuilderAccessor) bufferBuilder).getAllocator().allocate(elementOffset);
             Vec3d pos = camera.getPos();
             Quaternionf rotation = camera.getRotation();
             openParticleProject.render(
-                    ((BufferBuilderAccessor) bufferBuilder).getBuffer(),
-                    nextIsSingleThread, isRepeatTick ? 1 : tickDelta,
+                    pointer,
+                    nextIsSingleThread,
+                    isRepeatTick ? 1 : tickDelta,
                     (float) pos.x, (float) pos.y, (float) pos.z,
                     rotation.x, rotation.y, rotation.z, rotation.w
             );
-            ((BufferBuilderAccessor) bufferBuilder).setElementOffset(elementOffset);
             ((BufferBuilderAccessor) bufferBuilder).setVertexCount(4 * particleCount);
         } finally {
             LOCK.unlock();

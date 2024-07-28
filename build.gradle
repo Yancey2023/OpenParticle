@@ -1,6 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.6.5'
-    id 'maven-publish'
+    id 'fabric-loom' version '1.7-SNAPSHOT'
 }
 
 version = project.mod_version
@@ -26,12 +25,12 @@ dependencies {
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-//    modCompileOnly "maven.modrinth:replaymod:1.20.4-2.6.14"
-//    modLocalRuntime "maven.modrinth:replaymod:1.20.4-2.6.14"
-//    modCompileOnly "maven.modrinth:sodium:mc1.20.4-0.5.8"
-//    modLocalRuntime "maven.modrinth:sodium:mc1.20.4-0.5.8"
-//    modCompileOnly "maven.modrinth:iris:1.6.15+1.20.4"
-//    modLocalRuntime "maven.modrinth:iris:1.6.15+1.20.4"
+//    modCompileOnly "maven.modrinth:replaymod:1.21-2.6.17"
+//    modLocalRuntime "maven.modrinth:replaymod:1.21-2.6.17"
+//    modCompileOnly "maven.modrinth:sodium:mc1.21-0.5.11"
+//    modLocalRuntime "maven.modrinth:sodium:mc1.21-0.5.11"
+//    modCompileOnly "maven.modrinth:iris:1.7.3+1.21"
+//    modLocalRuntime "maven.modrinth:iris:1.7.3+1.21"
 }
 
 processResources {
@@ -47,7 +46,7 @@ processResources {
     }
 }
 
-def targetJavaVersion = 17
+def targetJavaVersion = 21
 tasks.withType(JavaCompile).configureEach {
     // ensure that the encoding is set to UTF-8, no matter what the system default is
     // this fixes some edge cases with special characters not displaying correctly
@@ -74,22 +73,5 @@ java {
 jar {
     from("LICENSE") {
         rename { "${it}_${project.archivesBaseName}"}
-    }
-}
-
-// configure the maven publication
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
-    }
-
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-    repositories {
-        // Add repositories to publish to here.
-        // Notice: This block does NOT have the same function as the block in the top level.
-        // The repositories here will be used for publishing your artifact, not for
-        // retrieving dependencies.
     }
 }

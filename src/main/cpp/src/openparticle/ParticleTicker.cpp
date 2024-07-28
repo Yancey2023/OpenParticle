@@ -13,7 +13,7 @@
 
 namespace OpenParticle {
 
-    inline static std::optional<Eigen::Matrix4f>
+    static std::optional<Eigen::Matrix4f>
     multiply(const std::optional<Eigen::Matrix4f> &matrix1, const std::optional<Eigen::Matrix4f> &matrix2) {
         if (HEDLEY_LIKELY(!matrix1.has_value())) {
             return matrix2;
