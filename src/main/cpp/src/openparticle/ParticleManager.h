@@ -30,8 +30,19 @@ namespace OpenParticle {
             if (!istream.is_open()) {
                 throw std::runtime_error("fail to open file");
             }
-            DataReader dataReader(istream);
-            particleData = new ParticleData(dataReader, setSprite);
+            union {
+                int32_t int32 = 0x01020304;
+                int8_t int8;
+            } data;
+            if (HEDLEY_LIKELY(data.int8 == 0x04)) {
+                DataReader<true> dataReader(istream);
+                particleData = new ParticleData(dataReader, setSprite);
+            } else if (data.int8 == 0x01) {
+                DataReader<false> dataReader(istream);
+                particleData = new ParticleData(dataReader, setSprite);
+            } else {
+                throw std::runtime_error("unknown byte order");
+            }
             istream.close();
             particleTicker = new ParticleTicker(particleData);
             int32_t tickEnd = getTickEnd();
@@ -173,8 +184,8 @@ namespace OpenParticle {
         }
 
         void doRender(bool isSingleThread, uint8_t *buffer, float tickDelta,
-                             float cameraX, float cameraY, float cameraZ,
-                             float rx, float ry, float rz, float rw) {
+                      float cameraX, float cameraY, float cameraZ,
+                      float rx, float ry, float rz, float rw) {
 #if OpenParticleDebug == true
             if (buffer == nullptr) {
                 throw std::runtime_error("buffer is nullptr");

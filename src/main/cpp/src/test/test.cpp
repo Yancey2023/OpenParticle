@@ -11,9 +11,9 @@
 
 int test1() {
     // Windows
-    std::string path = R"(D:\CLion\project\OpenParticle\run\315000.par)";
+    // std::string path = R"(D:\CLion\project\OpenParticle\run\315000.par)";
     // Ubuntu
-    // std::string path = R"(/home/yancey/CLionProjects/OpenParticle/run/315000.par)";
+    std::string path = R"(/home/yancey/CLionProjects/OpenParticle/run/315000.par)";
     std::chrono::high_resolution_clock::time_point start, end;
     start = std::chrono::high_resolution_clock::now();
     OpenParticle::ParticleManager<20> nodeManager(path.c_str(), [](OpenParticle::Identifier &identifier) {
@@ -84,10 +84,24 @@ int test2() {
     std::chrono::high_resolution_clock::time_point start, end;
     start = std::chrono::high_resolution_clock::now();
     std::ifstream istream(path, std::ios::in | std::ios::binary);
-    OpenParticle::DataReader dataReader(istream);
-    auto *particleData = new OpenParticle::ParticleData(dataReader, [](OpenParticle::Identifier &identifier) {
-        identifier.sprites.push_back(OpenParticle::Sprite{0.1, 0.2, 0.3, 0.4});
-    });
+    OpenParticle::ParticleData *particleData;
+    union {
+        int32_t int32 = 0x01020304;
+        int8_t int8;
+    } data;
+    if (HEDLEY_LIKELY(data.int8 == 0x04)) {
+        OpenParticle::DataReader<true> dataReader(istream);
+        particleData = new OpenParticle::ParticleData(dataReader, [](OpenParticle::Identifier &identifier) {
+            identifier.sprites.push_back(OpenParticle::Sprite{0.1, 0.2, 0.3, 0.4});
+        });
+    } else if (data.int8 == 0x01) {
+        OpenParticle::DataReader<false> dataReader(istream);
+        particleData = new OpenParticle::ParticleData(dataReader, [](OpenParticle::Identifier &identifier) {
+            identifier.sprites.push_back(OpenParticle::Sprite{0.1, 0.2, 0.3, 0.4});
+        });
+    } else {
+        throw std::runtime_error("unknown byte order");
+    }
     istream.close();
     auto *particleTicker = new OpenParticle::ParticleTicker(particleData);
     end = std::chrono::high_resolution_clock::now();

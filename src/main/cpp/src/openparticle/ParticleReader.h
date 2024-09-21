@@ -7,26 +7,54 @@
 
 namespace OpenParticle {
 
+    template<bool isSmallEndian>
     class DataReader {
     public:
         std::istream &istream;
-        bool isSmallEndian;
 
-        explicit DataReader(std::istream &istream);
+        explicit DataReader(std::istream &istream)
+            : istream(istream) {}
 
-        bool readBoolean() {
+        [[nodiscard]] bool readBoolean() const {
             return readByte();
         }
 
-        int8_t readByte();
+        [[nodiscard]] int8_t readByte() const {
+            int8_t value;
+            istream.read(reinterpret_cast<char *>(&value), sizeof(int8_t));
+            return value;
+        }
 
-        uint16_t readUnsignedShort();
+        [[nodiscard]] uint16_t readUnsignedShort() const {
+            uint16_t value;
+            istream.read(reinterpret_cast<char *>(&value), sizeof(uint16_t));
+            return isSmallEndian ? (value >> 8) | (value << 8) : value;
+        }
 
-        int32_t readInt();
+        [[nodiscard]] int32_t readInt() const {
+            int32_t value;
+            istream.read(reinterpret_cast<char *>(&value), sizeof(int32_t));
+            return isSmallEndian ? ((value >> 24) & 0xFF) |
+                                           ((value >> 8) & 0xFF00) |
+                                           ((value << 8) & 0xFF0000) |
+                                           (value << 24)
+                                 : value;
+        }
 
-        float readFloat();
+        [[nodiscard]] float readFloat() const {
+            const union {
+                int32_t i;
+                float f;
+            } int2float{readInt()};
+            return int2float.f;
+        }
 
-        std::string readString();
+        [[nodiscard]] std::string readString() const {
+            uint16_t length = readUnsignedShort();
+            std::vector<char> buffer(length);
+            istream.read(buffer.data(), length);
+            return {buffer.begin(), buffer.end()};
+        }
     };
 
     struct Sprite {
@@ -42,14 +70,46 @@ namespace OpenParticle {
         Identifier(const std::optional<std::string> &nameSpace,
                    std::string value);
 
-        explicit Identifier(DataReader &dataReader);
+        template<bool isSmallEndian>
+        explicit Identifier(DataReader<isSmallEndian> &dataReader)
+            : nameSpace(dataReader.readBoolean() ? std::optional<std::string>() : dataReader.readString()),
+              value(dataReader.readString()) {}
     };
 
-    Eigen::Matrix4f readMatrix(DataReader &dataReader);
+    template<bool isSmallEndian>
+    Eigen::Matrix4f readMatrix(const DataReader<isSmallEndian> &dataReader) {
+        float data[16];
+        for (float &i: data) {
+            i = dataReader.readFloat();
+        }
+        return Eigen::Matrix4f(data);
+    }
 
-    static int32_t readColor(DataReader &dataReader) {
+    template<bool isSmallEndian>
+    int32_t readColor(DataReader<isSmallEndian> &dataReader) {
         int32_t rgba = dataReader.readInt();
         return rgba << 8 | (rgba >> 24 & 0x000000FF);
+    }
+
+    template<bool isSmallEndian>
+    std::vector<Identifier> readIdentifierList(DataReader<isSmallEndian> &dataReader,
+                                               const std::function<void(Identifier &identifier)> &setSprite) {
+        int32_t size = dataReader.readInt();
+        if (size <= 0) {
+            throw std::runtime_error("list size should be a positive number");
+        }
+        std::vector<Identifier> identifiers;
+        identifiers.reserve(size);
+        for (int32_t i = 0; i < size; ++i) {
+            identifiers.emplace_back(dataReader);
+        }
+        for (int32_t i = 0; i < size; i++) {
+            setSprite(identifiers[i]);
+            if (identifiers[i].sprites.empty()) {
+                throw std::runtime_error("sprites can not be empty");
+            }
+        }
+        return identifiers;
     }
 
     namespace MatrixType {
@@ -89,7 +149,30 @@ namespace OpenParticle {
 
         DataMatrix(DataMatrix &&dataMatrix) noexcept;
 
-        explicit DataMatrix(DataReader &dataReader);
+        template<bool isSmallEndian>
+        explicit DataMatrix(const DataReader<isSmallEndian> &dataReader)
+            : type(static_cast<const MatrixType::MatrixType>(dataReader.readByte())) {
+            switch (type) {
+                case MatrixType::NONE:
+                    break;
+                case MatrixType::STATIC:
+                    matrix = readMatrix(dataReader);
+                    break;
+                case MatrixType::FREE:
+#if OpenParticleDebug != true
+                    int32_t size;
+#endif
+                    size = dataReader.readInt();
+                    if (size <= 0) {
+                        throw std::runtime_error("list size should be a positive number");
+                    }
+                    matrices = new Eigen::Matrix4f[size];
+                    for (int32_t i = 0; i < size; i++) {
+                        matrices[i] = readMatrix(dataReader);
+                    }
+                    break;
+            }
+        }
 
         ~DataMatrix();
     };
@@ -111,7 +194,30 @@ namespace OpenParticle {
 
         DataColor(DataColor &&dataColor) noexcept;
 
-        explicit DataColor(DataReader &dataColor);
+        template<bool isSmallEndian>
+        explicit DataColor(DataReader<isSmallEndian> &dataReader)
+            : type(static_cast<const ColorType::ColorType>(dataReader.readByte())) {
+            switch (type) {
+                case ColorType::NONE:
+                    break;
+                case ColorType::STATIC:
+                    color = readColor(dataReader);
+                    break;
+                case ColorType::FREE:
+#if OpenParticleDebug != true
+                    int32_t size;
+#endif
+                    size = dataReader.readInt();
+                    if (size <= 0) {
+                        throw std::runtime_error("list size should be a positive number");
+                    }
+                    colors = new int32_t[size];
+                    for (int32_t i = 0; i < size; i++) {
+                        colors[i] = readColor(dataReader);
+                    }
+                    break;
+            }
+        }
 
         ~DataColor();
     };
@@ -133,11 +239,12 @@ namespace OpenParticle {
     protected:
         explicit Particle(ParticleType::ParticleType type);
 
+    public:
         virtual ~Particle() = default;
     };
 
-    static Particle *
-    readParticleId(DataReader &dataReader, const std::vector<std::unique_ptr<Particle>> &particles) {
+    template<bool isSmallEndian>
+    Particle *readParticleId(DataReader<isSmallEndian> &dataReader, const std::vector<std::unique_ptr<Particle>> &particles) {
         int32_t index = dataReader.readInt();
         if (index < 0 || index >= particles.size()) {
             throw std::runtime_error("particle id error");
@@ -145,11 +252,30 @@ namespace OpenParticle {
         return particles[index].get();
     }
 
-    Identifier *readIdentifierId(DataReader &dataReader,
-                                 std::vector<Identifier> &identifiers);
+    template<bool isSmallEndian>
+    Identifier *readIdentifierId(const DataReader<isSmallEndian> &dataReader,
+                                 std::vector<Identifier> &identifiers) {
+        int32_t index = dataReader.readInt();
+        if (index < 0 || index >= identifiers.size()) {
+            throw std::runtime_error("error identifier id");
+        }
+        return &identifiers[index];
+    }
 
-    std::vector<Particle *> readParticleIdList(DataReader &dataReader,
-                                               const std::vector<std::unique_ptr<Particle>> &particles);
+    template<bool isSmallEndian>
+    std::vector<Particle *> readParticleIdList(DataReader<isSmallEndian> &dataReader,
+                                               const std::vector<std::unique_ptr<Particle>> &particles) {
+        int32_t size = dataReader.readInt();
+        if (size <= 0) {
+            throw std::runtime_error("list size should be a positive number");
+        }
+        std::vector<Particle *> result;
+        result.reserve(size);
+        for (int32_t i = 0; i < size; i++) {
+            result.push_back(readParticleId(dataReader, particles));
+        }
+        return result;
+    }
 
     class ParticleSingle : public Particle {
     public:
@@ -160,8 +286,12 @@ namespace OpenParticle {
         ParticleSingle(Identifier *identifier,
                        int32_t age);
 
-        explicit ParticleSingle(DataReader &dataReader,
-                                std::vector<Identifier> &identifiers);
+        template<bool isSmallEndian>
+        explicit ParticleSingle(const DataReader<isSmallEndian> &dataReader,
+                                std::vector<Identifier> &identifiers)
+            : Particle(ParticleType::SINGLE),
+              identifier(readIdentifierId(dataReader, identifiers)),
+              age(dataReader.readInt()) {}
     };
 
     class ParticleCompound : public Particle {
@@ -170,8 +300,17 @@ namespace OpenParticle {
 
         [[maybe_unused]] explicit ParticleCompound(const std::vector<Particle *> &children);
 
-        ParticleCompound(DataReader &dataReader,
-                         const std::vector<std::unique_ptr<Particle>> &particles);
+        template<bool isSmallEndian>
+        ParticleCompound(DataReader<isSmallEndian> &dataReader,
+                         const std::vector<std::unique_ptr<Particle>> &particles)
+            : Particle(ParticleType::COMPOUND),
+              children(readParticleIdList(dataReader, particles)) {
+            for (const auto &item: children) {
+                if (item->type == ParticleType::COMPOUND) {
+                    throw std::runtime_error("compound particle's child can not have compound particle");
+                }
+            }
+        }
     };
 
     class ParticleTransform : public Particle {
@@ -187,13 +326,60 @@ namespace OpenParticle {
                           DataColor &&dataColor,
                           int32_t tickAdd);
 
-        ParticleTransform(DataReader &dataReader,
-                          const std::vector<std::unique_ptr<Particle>> &particles);
+        template<bool isSmallEndian>
+        ParticleTransform(DataReader<isSmallEndian> &dataReader,
+                          const std::vector<std::unique_ptr<Particle>> &particles)
+            : Particle(ParticleType::TRANSFORM),
+              child(readParticleId(dataReader, particles)),
+              dataMatrix(dataReader),
+              dataColor(dataReader),
+              tickAdd(dataReader.readInt()) {
+            if (child->type == ParticleType::TRANSFORM) {
+                throw std::runtime_error("transform particle's child can not be a transform particle");
+            }
+        }
 
-        std::optional<Eigen::Matrix4f> getTransform(int32_t age);
+        [[nodiscard]] std::optional<Eigen::Matrix4f> getTransform(int32_t age) const;
 
-        std::optional<int32_t> getColor(int32_t age);
+        [[nodiscard]] std::optional<int32_t> getColor(int32_t age) const;
     };
+
+    template<bool isSmallEndian>
+    std::unique_ptr<Particle> readParticle(DataReader<isSmallEndian> &dataReader,
+                                           std::vector<Identifier> &identifiers,
+                                           const std::vector<std::unique_ptr<Particle>> &particles) {
+        std::unique_ptr<Particle> particle;
+        auto particleType = static_cast<ParticleType::ParticleType>(dataReader.readByte());
+        switch (particleType) {
+            case ParticleType::SINGLE:
+                particle = std::make_unique<ParticleSingle>(dataReader, identifiers);
+                break;
+            case ParticleType::COMPOUND:
+                particle = std::make_unique<ParticleCompound>(dataReader, particles);
+                break;
+            case ParticleType::TRANSFORM:
+                particle = std::make_unique<ParticleTransform>(dataReader, particles);
+                break;
+            default:
+                throw std::runtime_error("error particle type when reading file: " + std::to_string(particleType));
+        }
+        return particle;
+    }
+
+    template<bool isSmallEndian>
+    std::vector<std::unique_ptr<Particle>> readParticleList(DataReader<isSmallEndian> &dataReader,
+                                                            std::vector<Identifier> &identifiers) {
+        int32_t size = dataReader.readInt();
+        if (size <= 0) {
+            throw std::runtime_error("list size should be a positive number");
+        }
+        std::vector<std::unique_ptr<Particle>> particles;
+        particles.reserve(size);
+        for (int32_t i = 0; i < size; ++i) {
+            particles.push_back(readParticle(dataReader, identifiers, particles));
+        }
+        return particles;
+    }
 
     class ParticleData {
     public:
@@ -206,8 +392,16 @@ namespace OpenParticle {
                      std::vector<std::unique_ptr<Particle>> &&particles,
                      Particle *root);
 
-        explicit ParticleData(DataReader &dataReader,
-                              const std::function<void(Identifier &identifier)> &setSprite);
+        template<bool isSmallEndian>
+        explicit ParticleData(DataReader<isSmallEndian> &dataReader,
+                              const std::function<void(Identifier &identifier)> &setSprite)
+            : identifiers(readIdentifierList(dataReader, setSprite)),
+              particles(readParticleList(dataReader, identifiers)),
+              root(readParticleId(dataReader, particles)) {
+            if (root->type == ParticleType::COMPOUND) {
+                throw std::runtime_error("you can't use compound node as root");
+            }
+        }
     };
 
 }// namespace OpenParticle
