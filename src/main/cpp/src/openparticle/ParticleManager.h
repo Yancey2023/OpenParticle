@@ -30,10 +30,10 @@ namespace OpenParticle {
             if (!istream.is_open()) {
                 throw std::runtime_error("fail to open file");
             }
-            OpenParticle::DataReader dataReader(istream);
-            particleData = new OpenParticle::ParticleData(dataReader, setSprite);
+            DataReader dataReader(istream);
+            particleData = new ParticleData(dataReader, setSprite);
             istream.close();
-            particleTicker = new OpenParticle::ParticleTicker(particleData);
+            particleTicker = new ParticleTicker(particleData);
             int32_t tickEnd = getTickEnd();
             particleCounts = std::vector<int>(tickEnd);
             for (int i = 0; i < particleTicker->particleSingleNodeListSize; ++i) {
@@ -67,7 +67,7 @@ namespace OpenParticle {
             delete particleTicker;
         }
 
-        int32_t getTickEnd() {
+        [[nodiscard]] int32_t getTickEnd() const {
             return particleTicker->root->tickEnd;
         }
 
@@ -161,14 +161,14 @@ namespace OpenParticle {
             return cache.has_value() ? &cache.value().get() : nullptr;
         }
 
-        int32_t getParticleCount() {
+        [[nodiscard]] int32_t getParticleCount() const {
             if (currentTick < 0 || currentTick >= getTickEnd()) {
                 return 0;
             }
             return particleCounts[currentTick];
         }
 
-        int32_t getVBOSize() {
+        [[nodiscard]] int32_t getVBOSize() const {
             return 112 * getParticleCount();
         }
 

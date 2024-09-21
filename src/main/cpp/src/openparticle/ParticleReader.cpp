@@ -65,8 +65,8 @@ namespace OpenParticle {
         : nameSpace(dataReader.readBoolean() ? std::optional<std::string>() : dataReader.readString()),
           value(dataReader.readString()) {}
 
-    static std::vector<Identifier> readIdentifierList(DataReader &dataReader,
-                                                      const std::function<void(Identifier &identifier)> &setSprite) {
+    std::vector<Identifier> readIdentifierList(DataReader &dataReader,
+                                               const std::function<void(Identifier &identifier)> &setSprite) {
         int32_t size = dataReader.readInt();
         if (size <= 0) {
             throw std::runtime_error("list size should be a positive number");
@@ -204,13 +204,11 @@ namespace OpenParticle {
         return result;
     }
 
-    [[maybe_unused]]
-    Particle::Particle(ParticleType::ParticleType type)
+    [[maybe_unused]] Particle::Particle(ParticleType::ParticleType type)
         : type(type) {}
 
-    [[maybe_unused]]
-    ParticleSingle::ParticleSingle(Identifier *identifier,
-                                   int32_t age)
+    [[maybe_unused]] ParticleSingle::ParticleSingle(Identifier *identifier,
+                                                    int32_t age)
         : Particle(ParticleType::SINGLE),
           identifier(identifier),
           age(age) {}
@@ -221,8 +219,7 @@ namespace OpenParticle {
           identifier(readIdentifierId(dataReader, identifiers)),
           age(dataReader.readInt()) {}
 
-    [[maybe_unused]]
-    ParticleCompound::ParticleCompound(const std::vector<Particle *> &children)
+    [[maybe_unused]] ParticleCompound::ParticleCompound(const std::vector<Particle *> &children)
         : Particle(ParticleType::COMPOUND),
           children(children) {
         for (const auto &item: children) {
@@ -243,11 +240,10 @@ namespace OpenParticle {
         }
     }
 
-    [[maybe_unused]]
-    ParticleTransform::ParticleTransform(Particle *child,
-                                         DataMatrix &&dataMatrix,
-                                         DataColor &&dataColor,
-                                         int32_t tickAdd)
+    [[maybe_unused]] ParticleTransform::ParticleTransform(Particle *child,
+                                                          DataMatrix &&dataMatrix,
+                                                          DataColor &&dataColor,
+                                                          int32_t tickAdd)
         : Particle(ParticleType::TRANSFORM),
           child(child),
           dataMatrix(std::move(dataMatrix)),
@@ -258,9 +254,8 @@ namespace OpenParticle {
         }
     }
 
-    [[maybe_unused]]
-    ParticleTransform::ParticleTransform(DataReader &dataReader,
-                                         const std::vector<std::unique_ptr<Particle>> &particles)
+    [[maybe_unused]] ParticleTransform::ParticleTransform(DataReader &dataReader,
+                                                          const std::vector<std::unique_ptr<Particle>> &particles)
         : Particle(ParticleType::TRANSFORM),
           child(readParticleId(dataReader, particles)),
           dataMatrix(dataReader),
@@ -279,7 +274,7 @@ namespace OpenParticle {
                 return dataMatrix.matrix;
             case MatrixType::FREE:
 #if OpenParticleDebug == true
-                if(age < 0 || age >= dataMatrix.size){
+                if (age < 0 || age >= dataMatrix.size) {
                     throw std::runtime_error("age is not in range of (0, dataMatrix.size)");
                 }
 #endif
@@ -297,7 +292,7 @@ namespace OpenParticle {
                 return dataColor.color;
             case ColorType::FREE:
 #if OpenParticleDebug == true
-                if(age < 0 || age >= dataColor.size){
+                if (age < 0 || age >= dataColor.size) {
                     throw std::runtime_error("age is not in range of (0, dataColor.size)");
                 }
 #endif
@@ -343,10 +338,9 @@ namespace OpenParticle {
         return particles;
     }
 
-    [[maybe_unused]]
-    ParticleData::ParticleData(std::vector<Identifier> &&identifiers,
-                               std::vector<std::unique_ptr<Particle>> &&particles,
-                               Particle *root)
+    [[maybe_unused]] ParticleData::ParticleData(std::vector<Identifier> &&identifiers,
+                                                std::vector<std::unique_ptr<Particle>> &&particles,
+                                                Particle *root)
         : identifiers(std::move(identifiers)),
           particles(std::move(particles)),
           root(root) {

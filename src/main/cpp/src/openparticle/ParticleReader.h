@@ -131,10 +131,8 @@ namespace OpenParticle {
         const ParticleType::ParticleType type;
 
     protected:
-    public:
         explicit Particle(ParticleType::ParticleType type);
 
-    public:
         virtual ~Particle() = default;
     };
 
@@ -170,8 +168,7 @@ namespace OpenParticle {
     public:
         const std::vector<Particle *> children;
 
-        [[maybe_unused]]
-        explicit ParticleCompound(const std::vector<Particle *> &children);
+        [[maybe_unused]] explicit ParticleCompound(const std::vector<Particle *> &children);
 
         ParticleCompound(DataReader &dataReader,
                          const std::vector<std::unique_ptr<Particle>> &particles);

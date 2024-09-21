@@ -65,7 +65,7 @@ namespace OpenParticle {
         Node **particleSingleNodeList;
         Node *root;
 
-        explicit ParticleTicker(ParticleData *particleData);
+        explicit ParticleTicker(const ParticleData *particleData);
 
         ~ParticleTicker();
 

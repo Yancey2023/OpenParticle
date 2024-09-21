@@ -23,7 +23,7 @@ namespace OpenParticle {
         return matrix1.value() * matrix2.value();
     }
 
-    Node::Node() {
+    Node::Node() {// NOLINT(*-pro-type-member-init)
 #if OpenParticleDebug == true
         particle = nullptr;
         isTransformNode = false;
@@ -47,7 +47,7 @@ namespace OpenParticle {
         particle = particle0;
         isTransformNode = particle->type == ParticleType::TRANSFORM;
         if (HEDLEY_LIKELY(isTransformNode)) {
-            childrenSize = getRootNodeListSize(((ParticleTransform *) particle)->child);
+            childrenSize = getRootNodeListSize(static_cast<ParticleTransform *>(particle)->child);
             children = new Node *[childrenSize];
             ASSERT_NOTNULL(children)
 #if OpenParticleDebug == true
@@ -55,7 +55,7 @@ namespace OpenParticle {
                 children[i] = nullptr;
             }
 #endif
-            collectNode(((ParticleTransform *) particle)->child, nodeList, nextIndex, children);
+            collectNode(static_cast<ParticleTransform *>(particle)->child, nodeList, nextIndex, children);
 #if OpenParticleDebug == true
             for (int i = 0; i < childrenSize; ++i) {
                 if (children[i] == nullptr) {
@@ -71,7 +71,7 @@ namespace OpenParticle {
         ASSERT_NOTNULL(particle)
         if (HEDLEY_LIKELY(isTransformNode)) {
             ASSERT_NOTNULL(children)
-            tickStart = tickStart0 + ((ParticleTransform *) particle)->tickAdd;
+            tickStart = tickStart0 + static_cast<ParticleTransform *>(particle)->tickAdd;
             tickEnd = 0;
             for (int i = 0; i < childrenSize; ++i) {
                 Node *item = children[i];
@@ -81,7 +81,7 @@ namespace OpenParticle {
             }
         } else {
             tickStart = tickStart0;
-            tickEnd = tickStart + ((ParticleSingle *) particle)->age;
+            tickEnd = tickStart + static_cast<ParticleSingle *>(particle)->age;
         }
     }
 
@@ -96,13 +96,13 @@ namespace OpenParticle {
             ASSERT_NOTNULL(children)
             TransformNodeCache nodeCache;
             nodeCache.cachePosition = multiply(parentCache.cachePosition,
-                                               ((ParticleTransform *) particle)->getTransform(tick - tickStart));
-            nodeCache.cacheColor = parentCache.cacheColor.has_value() ? parentCache.cacheColor : ((ParticleTransform *) particle)->getColor(tick - tickStart);
+                                               static_cast<ParticleTransform *>(particle)->getTransform(tick - tickStart));
+            nodeCache.cacheColor = parentCache.cacheColor.has_value() ? parentCache.cacheColor : static_cast<ParticleTransform *>(particle)->getColor(tick - tickStart);
             for (int i = 0; i < childrenSize; ++i) {
                 children[i]->buildCache(tick, nodeCache, caches);
             }
         } else {
-            SingleParticleNodeCache nodeCache;
+            SingleParticleNodeCache nodeCache;// NOLINT(*-pro-type-member-init)
             if (HEDLEY_LIKELY(parentCache.cachePosition.has_value())) {
                 nodeCache.x = parentCache.cachePosition.value()(0, 3);
                 nodeCache.y = parentCache.cachePosition.value()(1, 3);
@@ -115,7 +115,7 @@ namespace OpenParticle {
             nodeCache.color = parentCache.cacheColor.value_or(0xFFFFFFFF);
             int age = tick - tickStart;
             int maxAge = tickEnd - tickStart;
-            std::vector<Sprite> &sprites = ((ParticleSingle *) particle)->identifier->sprites;
+            std::vector<Sprite> &sprites = static_cast<ParticleSingle *>(particle)->identifier->sprites;
             nodeCache.sprite = &sprites[age * (sprites.size() - 1) / maxAge];
             caches[id] = nodeCache;
         }
@@ -128,7 +128,7 @@ namespace OpenParticle {
             case ParticleType::TRANSFORM:
                 return 1;
             case ParticleType::COMPOUND:
-                return ((ParticleCompound *) particle)->children.size();
+                return static_cast<ParticleCompound *>(particle)->children.size();
             default:
                 throw std::runtime_error("unknown particle type when getting root node list size");
         }
@@ -143,10 +143,10 @@ namespace OpenParticle {
                 break;
             case ParticleType::TRANSFORM:
                 result++;
-                result += getNodeListSize(((ParticleTransform *) particle)->child);
+                result += getNodeListSize(static_cast<ParticleTransform *>(particle)->child);
                 break;
             case ParticleType::COMPOUND:
-                for (Particle *child: ((ParticleCompound *) particle)->children) {
+                for (Particle *child: static_cast<ParticleCompound *>(particle)->children) {
                     result += getNodeListSize(child);
                 }
                 break;
@@ -171,7 +171,7 @@ namespace OpenParticle {
                 ASSERT_NOTNULL(rootNodes[0])
             } break;
             case ParticleType::COMPOUND: {
-                const std::vector<Particle *> &children = ((ParticleCompound *) particle)->children;
+                const std::vector<Particle *> &children = static_cast<ParticleCompound *>(particle)->children;
                 for (int i = 0; i < children.size(); ++i) {
                     size_t index = nextIndex++;
                     nodeList[index].init(children[i], nodeList, nextIndex);
@@ -188,7 +188,7 @@ namespace OpenParticle {
         }
     }
 
-    ParticleTicker::ParticleTicker(ParticleData *particleData) {
+    ParticleTicker::ParticleTicker(const ParticleData *particleData) {
 #if OpenParticleDebug == true
         nodeList = nullptr;
         particleSingleNodeList = nullptr;

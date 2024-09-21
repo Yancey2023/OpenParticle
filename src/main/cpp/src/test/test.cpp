@@ -10,8 +10,10 @@
 #include <thread>
 
 int test1() {
+    // Windows
     std::string path = R"(D:\CLion\project\OpenParticle\run\315000.par)";
-    //    std::string path = R"(/home/yancey/CLionProjects/OpenParticle/run/315000.par)";
+    // Ubuntu
+    // std::string path = R"(/home/yancey/CLionProjects/OpenParticle/run/315000.par)";
     std::chrono::high_resolution_clock::time_point start, end;
     start = std::chrono::high_resolution_clock::now();
     OpenParticle::ParticleManager<20> nodeManager(path.c_str(), [](OpenParticle::Identifier &identifier) {
@@ -26,7 +28,7 @@ int test1() {
     start = std::chrono::high_resolution_clock::now();
     int32_t tickEnd = nodeManager.getTickEnd();
     std::chrono::milliseconds duration(50);
-    int framePerTick = 3;
+    static constexpr int framePerTick = 3;
     for (int j = 0; j < 1; j++) {
         for (int32_t i = 0; i < tickEnd; ++i) {
             std::chrono::high_resolution_clock::time_point beforeTick = std::chrono::high_resolution_clock::now();
@@ -49,7 +51,7 @@ int test1() {
                 size = nodeManager.getVBOSize();
                 if (size != 0) {
                     buffer = new uint8_t[size];
-                    nodeManager.doRender(false, buffer, (float) k / (float) framePerTick, 0, 0, 0, 0, 0, 0, 1);
+                    nodeManager.doRender(false, buffer, static_cast<float>(k) / static_cast<float>(framePerTick), 0, 0, 0, 0, 0, 0, 1);
                     delete[] buffer;
                 }
             }
@@ -128,9 +130,9 @@ int test2() {
         int32_t size = particleCount * 112;
         auto *buffer = new uint8_t[size];
 
-        const int framePerTick = 4;
+        constexpr int framePerTick = 4;
         for (int frame = 1; frame <= framePerTick; ++frame) {
-            float tickDelta = (float) frame / framePerTick;
+            float tickDelta = static_cast<float>(frame) / framePerTick;
             OpenParticle::ParticleRender::doRenderMultiThread(buffer, particleCount, tickDelta,
                                                               0, 0, 0,
                                                               0, 0, 0, 1,
@@ -142,13 +144,13 @@ int test2() {
                 for (int k = 0; k < 4; k++) {
                     int offset = j * 112 + k * 28;
                     fprintf(renderFile, "pos:(%.1f, %.1f, %.1f), ARGB:(%d, %d, %d, %d) | ",
-                            *(float *) (buffer + offset + 0),
-                            *(float *) (buffer + offset + 4),
-                            *(float *) (buffer + offset + 8),
-                            *(uint8_t *) (buffer + offset + 20),
-                            *(uint8_t *) (buffer + offset + 21),
-                            *(uint8_t *) (buffer + offset + 22),
-                            *(uint8_t *) (buffer + offset + 23));
+                            *reinterpret_cast<float *>(buffer + offset + 0),
+                            *reinterpret_cast<float *>(buffer + offset + 4),
+                            *reinterpret_cast<float *>(buffer + offset + 8),
+                            *reinterpret_cast<uint8_t *>(buffer + offset + 20),
+                            *reinterpret_cast<uint8_t *>(buffer + offset + 21),
+                            *reinterpret_cast<uint8_t *>(buffer + offset + 22),
+                            *reinterpret_cast<uint8_t *>(buffer + offset + 23));
                 }
                 fprintf(renderFile, "\n");
             }

@@ -20,16 +20,16 @@ namespace OpenParticle::ParticleRender {
         }
 #endif
         // position
-        *(float *) (buffer) = x;
-        *(float *) (buffer + 4) = y;
-        *(float *) (buffer + 8) = z;
+        *reinterpret_cast<float *>(buffer) = x;
+        *reinterpret_cast<float *>(buffer + 4) = y;
+        *reinterpret_cast<float *>(buffer + 8) = z;
         // texture
-        *(float *) (buffer + 12) = u;
-        *(float *) (buffer + 16) = v;
+        *reinterpret_cast<float *>(buffer + 12) = u;
+        *reinterpret_cast<float *>(buffer + 16) = v;
         // color
-        *(int32_t *) (buffer + 20) = (int32_t) color;
+        *reinterpret_cast<int32_t *>(buffer + 20) = color;
         // light
-        *(int32_t *) (buffer + 24) = (int32_t) 0x00F000F0;
+        *reinterpret_cast<int32_t *>(buffer + 24) = 0x00F000F0;
     }
 
     struct Task {
