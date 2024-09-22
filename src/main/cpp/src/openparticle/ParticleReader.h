@@ -28,17 +28,24 @@ namespace OpenParticle {
         [[nodiscard]] uint16_t readUnsignedShort() const {
             uint16_t value;
             istream.read(reinterpret_cast<char *>(&value), sizeof(uint16_t));
-            return isSmallEndian ? (value >> 8) | (value << 8) : value;
+            if constexpr (isSmallEndian) {
+                return (value >> 8) | (value << 8);
+            } else {
+                return value;
+            }
         }
 
         [[nodiscard]] int32_t readInt() const {
             int32_t value;
             istream.read(reinterpret_cast<char *>(&value), sizeof(int32_t));
-            return isSmallEndian ? ((value >> 24) & 0xFF) |
-                                           ((value >> 8) & 0xFF00) |
-                                           ((value << 8) & 0xFF0000) |
-                                           (value << 24)
-                                 : value;
+            if constexpr (isSmallEndian) {
+                return ((value >> 24) & 0xFF) |
+                       ((value >> 8) & 0xFF00) |
+                       ((value << 8) & 0xFF0000) |
+                       (value << 24);
+            } else {
+                return value;
+            }
         }
 
         [[nodiscard]] float readFloat() const {
