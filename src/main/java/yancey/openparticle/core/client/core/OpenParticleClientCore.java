@@ -2,25 +2,25 @@ package yancey.openparticle.core.client.core;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.particle.SpriteProvider;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.text.HoverEvent;
-import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameRules;
-import org.joml.Quaternionf;
+
 import yancey.openparticle.api.common.nativecore.OpenParticleProject;
 import yancey.openparticle.core.events.RunningEventManager;
 import yancey.openparticle.core.mixin.BufferBuilderAccessor;
 import yancey.openparticle.core.mixin.ParticleManagerAccessor;
 import yancey.openparticle.core.mixin.SimpleSpriteProviderAccessor;
 import yancey.openparticle.core.network.RunPayloadC2S;
+import yancey.openparticle.core.versions.IdentifierUtil;
+import yancey.openparticle.core.versions.TextUtil;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -31,13 +31,23 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.locks.ReentrantLock;
 
+//#if MC<12100
+//$$ import java.nio.ByteBuffer;
+//#endif
+
+//#if MC>=11903
+import org.joml.Quaternionf;
+//#else
+//$$ import net.minecraft.util.math.Quaternion;
+//#endif
+
 @Environment(EnvType.CLIENT)
 public class OpenParticleClientCore {
 
     private static final Map<Identifier, SpriteProvider> spriteAwareFactories = ((ParticleManagerAccessor) MinecraftClient.getInstance().particleManager).getSpriteAwareFactories();
 
     private static final OpenParticleProject.Bridge bridge = (namespace, value) -> {
-        SpriteProvider spriteProvider = spriteAwareFactories.get(Identifier.of(namespace, value));
+        SpriteProvider spriteProvider = spriteAwareFactories.get(IdentifierUtil.create(namespace, value));
         List<Sprite> sprites = ((SimpleSpriteProviderAccessor) spriteProvider).getSprites();
         float[] result = new float[sprites.size() * 4];
         for (int i = 0; i < sprites.size(); i++) {
@@ -77,10 +87,10 @@ public class OpenParticleClientCore {
             long timeEnd = System.currentTimeMillis();
             if (isSuccess && client.world != null) {
                 if (client.world.getGameRules().getBoolean(GameRules.COMMAND_BLOCK_OUTPUT)) {
-                    client.inGameHud.getChatHud().addMessage(Text.empty()
-                            .append(Text.literal("粒子文件加载成功(耗时"))
-                            .append(Text.literal((timeEnd - timeStart) + "ms").formatted(Formatting.AQUA))
-                            .append(Text.literal(")"))
+                    client.inGameHud.getChatHud().addMessage(TextUtil.empty()
+                            .append(TextUtil.literal("粒子文件加载成功(耗时"))
+                            .append(TextUtil.literal((timeEnd - timeStart) + "ms").formatted(Formatting.AQUA))
+                            .append(TextUtil.literal(")"))
                     );
                 }
             }
@@ -104,7 +114,7 @@ public class OpenParticleClientCore {
                     return;
                 }
             }
-            ClientPlayNetworking.send(new RunPayloadC2S(openParticleProject.path, openParticleProject.tickEnd, isSingleThread));
+            RunPayloadC2S.ID.sendToServer(new RunPayloadC2S(openParticleProject.path, openParticleProject.tickEnd, isSingleThread));
         } finally {
             LOCK.unlock();
         }
@@ -155,10 +165,10 @@ public class OpenParticleClientCore {
             openParticleProject = null;
         }
         if (!Files.exists(Path.of(path))) {
-            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.empty()
-                    .append(Text.literal("粒子文件加载失败(找不到文件: ").formatted(Formatting.RED))
-                    .append(Text.literal(path).formatted(Formatting.LIGHT_PURPLE))
-                    .append(Text.literal(")").formatted(Formatting.RED))
+            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(TextUtil.empty()
+                    .append(TextUtil.literal("粒子文件加载失败(找不到文件: ").formatted(Formatting.RED))
+                    .append(TextUtil.literal(path).formatted(Formatting.LIGHT_PURPLE))
+                    .append(TextUtil.literal(")").formatted(Formatting.RED))
             );
             return false;
         }
@@ -166,11 +176,11 @@ public class OpenParticleClientCore {
             openParticleProject = new OpenParticleProject(bridge, path);
             return true;
         } catch (Exception e) {
-            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.literal("粒子文件加载失败").formatted(Formatting.RED).styled(style -> {
+            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(TextUtil.literal("粒子文件加载失败").formatted(Formatting.RED).styled(style -> {
                 StringWriter stringWriter = new StringWriter();
                 PrintWriter printWriter = new PrintWriter(stringWriter);
                 e.printStackTrace(printWriter);
-                return style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(stringWriter.toString()).formatted(Formatting.RED)));
+                return style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextUtil.literal(stringWriter.toString()).formatted(Formatting.RED)));
             }));
             return false;
         }
@@ -212,15 +222,36 @@ public class OpenParticleClientCore {
                 return;
             }
             int elementOffset = 112 * particleCount;
+
+            //#if MC>=12100
             long pointer = ((BufferBuilderAccessor) bufferBuilder).getAllocator().allocate(elementOffset);
+            //#else
+            //$$ ((BufferBuilderAccessor) bufferBuilder).invokeGrow(elementOffset);
+            //$$ ByteBuffer byteBuffer = ((BufferBuilderAccessor) bufferBuilder).getBuffer();
+            //#endif
+
             Vec3d pos = camera.getPos();
+
+            //#if MC>=11903
             Quaternionf rotation = camera.getRotation();
+            //#else
+            //$$ Quaternion rotation = camera.getRotation();
+            //#endif
+
             openParticleProject.render(
+                    //#if MC>=12100
                     pointer,
+                    //#else
+                    //$$ byteBuffer,
+                    //#endif
                     nextIsSingleThread,
                     isRepeatTick ? 1 : tickDelta,
                     (float) pos.x, (float) pos.y, (float) pos.z,
+                    //#if MC>=11903
                     rotation.x, rotation.y, rotation.z, rotation.w
+                    //#else
+                    //$$ rotation.getX(), rotation.getY(), rotation.getZ(), rotation.getW()
+                    //#endif
             );
             ((BufferBuilderAccessor) bufferBuilder).setVertexCount(4 * particleCount);
         } finally {

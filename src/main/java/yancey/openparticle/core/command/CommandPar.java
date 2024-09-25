@@ -13,7 +13,7 @@ import static net.minecraft.server.command.CommandManager.literal;
 
 public class CommandPar {
 
-    public static void init(CommandDispatcher<ServerCommandSource> dispatcher) {
+    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("par")
                 .requires(source -> source.hasPermissionLevel(2))
                 .then(literal("loadAndRun")

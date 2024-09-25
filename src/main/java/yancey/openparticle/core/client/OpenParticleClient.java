@@ -2,7 +2,6 @@ package yancey.openparticle.core.client;
 
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
 import org.slf4j.Logger;
@@ -40,14 +39,14 @@ public class OpenParticleClient implements ClientModInitializer {
             }
         }
         System.load(dest.toString());
-        ClientPlayNetworking.registerGlobalReceiver(RunTickPayloadS2C.ID, (payload, context) ->
-                OpenParticleClientCore.runTick(payload.path(), payload.tick(), payload.isSingleThread()));
-        ClientPlayNetworking.registerGlobalReceiver(LoadAndRunPayloadS2C.ID, (payload, context) ->
-                OpenParticleClientCore.loadAndRun(payload.path(), payload.isSingleThread()));
-        ClientPlayNetworking.registerGlobalReceiver(LoadPayloadS2C.ID, (payload, context) ->
-                OpenParticleClientCore.loadFile(payload.path()));
-        ClientPlayNetworking.registerGlobalReceiver(RunPayloadS2C.ID, (payload, context) ->
-                OpenParticleClientCore.run(payload.path(), payload.isSingleThread()));
+        RunTickPayloadS2C.ID.registerClientGlobalReceiver((payload, client, player) ->
+                OpenParticleClientCore.runTick(payload.path, payload.tick, payload.isSingleThread));
+        LoadAndRunPayloadS2C.ID.registerClientGlobalReceiver((payload, client, player) ->
+                OpenParticleClientCore.loadAndRun(payload.path, payload.isSingleThread));
+        LoadPayloadS2C.ID.registerClientGlobalReceiver((payload, client, player) ->
+                OpenParticleClientCore.loadFile(payload.path));
+        RunPayloadS2C.ID.registerClientGlobalReceiver((payload, client, player) ->
+                OpenParticleClientCore.run(payload.path, payload.isSingleThread));
         KeyboardManager.init(true);
         WorldRenderEvents.START.register(context -> OpenParticleClientCore.inRendered = false);
     }

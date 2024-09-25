@@ -3,7 +3,6 @@ package yancey.openparticle.core.keys;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.lwjgl.glfw.GLFW;
 import yancey.openparticle.core.core.OpenParticleServerCore;
@@ -43,7 +42,7 @@ public class KeyboardManager {
                 }
             }
             if (!idList.isEmpty()) {
-                ClientPlayNetworking.send(new KeyboardPayloadC2S(idList));
+                KeyboardPayloadC2S.ID.sendToServer(new KeyboardPayloadC2S(idList.stream().mapToInt(value -> value).toArray()));
             }
         });
     }
@@ -57,7 +56,7 @@ public class KeyboardManager {
         }
     }
 
-    public static void runInServe(List<Integer> idList, ServerPlayerEntity entityPlayerMP) {
+    public static void runInServe(int[] idList, ServerPlayerEntity entityPlayerMP) {
         for (int id : idList) {
             onKeyPressedListenerList.get(id).onKeyPressed(entityPlayerMP);
         }

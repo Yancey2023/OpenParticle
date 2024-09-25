@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "openparticle",
+  "version": "${version}",
+  "name": "OpenParticle",
+  "description": "",
+  "authors": [],
+  "contact": {
+    "repo": "https://github.com/Yancey2023/OpenParticle"
+  },
+  "license": "GPL-3.0",
+  "icon": "assets/openparticle/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "yancey.openparticle.core.client.OpenParticleClient"
+    ],
+    "main": [
+      "yancey.openparticle.core.OpenParticle"
+    ]
+  },
+  "mixins": [
+    "openparticle.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": "*",
+    "fabric": "*",
+    "minecraft": "1.18"
+  }
+}

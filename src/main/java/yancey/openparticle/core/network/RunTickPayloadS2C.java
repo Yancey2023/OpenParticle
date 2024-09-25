@@ -1,32 +1,38 @@
 package yancey.openparticle.core.network;
 
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.PacketByteBuf;
+import yancey.openparticle.core.versions.PayloadBase;
+import yancey.openparticle.core.versions.PayloadCodec;
+import yancey.openparticle.core.versions.PayloadId;
 
-import static yancey.openparticle.core.OpenParticle.MOD_ID;
+public class RunTickPayloadS2C extends PayloadBase<RunTickPayloadS2C> {
 
-public record RunTickPayloadS2C(String path, int tick, boolean isSingleThread) implements CustomPayload {
-
-    public static final CustomPayload.Id<RunTickPayloadS2C> ID = new CustomPayload.Id<>(Identifier.of(MOD_ID, "run_tick"));
-    public static final PacketCodec<RegistryByteBuf, RunTickPayloadS2C> CODEC = new PacketCodec<>() {
+    public static final PayloadId<RunTickPayloadS2C> ID = new PayloadId<RunTickPayloadS2C>("run_tick", new PayloadCodec<RunTickPayloadS2C>() {
         @Override
-        public RunTickPayloadS2C decode(RegistryByteBuf buf) {
+        public RunTickPayloadS2C decode(PacketByteBuf buf) {
             return new RunTickPayloadS2C(buf.readString(), buf.readVarInt(), buf.readBoolean());
         }
 
         @Override
-        public void encode(RegistryByteBuf buf, RunTickPayloadS2C value) {
+        public void encode(PacketByteBuf buf, RunTickPayloadS2C value) {
             buf.writeString(value.path);
             buf.writeVarInt(value.tick);
             buf.writeBoolean(value.isSingleThread);
         }
-    };
+    });
 
-    @Override
-    public Id<RunTickPayloadS2C> getId() {
-        return ID;
+    public String path;
+    public int tick;
+    public boolean isSingleThread;
+
+    public RunTickPayloadS2C(String path, int tick, boolean isSingleThread) {
+        this.path = path;
+        this.tick = tick;
+        this.isSingleThread = isSingleThread;
     }
 
+    @Override
+    public PayloadId<RunTickPayloadS2C> getPayloadId() {
+        return ID;
+    }
 }

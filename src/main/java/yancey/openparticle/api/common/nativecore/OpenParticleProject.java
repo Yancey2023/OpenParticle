@@ -89,6 +89,7 @@ public class OpenParticleProject implements Closeable {
      */
     private native static void render(long pointer, long bufferPointer, boolean isSingleThread, float tickDelta, float cameraX, float cameraY, float cameraZ, float rx, float ry, float rz, float rw);
 
+    @SuppressWarnings({"unused", "DuplicatedCode"})
     public void render(Buffer directBuffer, boolean isSingleThread, float tickDelta, float cameraX, float cameraY, float cameraZ, float rx, float ry, float rz, float rw) {
         if (!directBuffer.isDirect()) {
             throw new RuntimeException("buffer is not direct");
@@ -177,6 +178,7 @@ public class OpenParticleProject implements Closeable {
      */
     private native static void render(long pointer, Buffer directBuffer, boolean isSingleThread, float tickDelta, float cameraX, float cameraY, float cameraZ, float rx, float ry, float rz, float rw);
 
+    @SuppressWarnings({"unused", "DuplicatedCode"})
     public void render(long bufferPointer, boolean isSingleThread, float tickDelta, float cameraX, float cameraY, float cameraZ, float rx, float ry, float rz, float rw) {
         if (tickDelta < 0 || tickDelta > 1) {
             throw new RuntimeException("Tick delta out of range: " + tickDelta);

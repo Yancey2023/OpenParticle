@@ -1,32 +1,38 @@
 package yancey.openparticle.core.network;
 
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.PacketByteBuf;
+import yancey.openparticle.core.versions.PayloadBase;
+import yancey.openparticle.core.versions.PayloadCodec;
+import yancey.openparticle.core.versions.PayloadId;
 
-import static yancey.openparticle.core.OpenParticle.MOD_ID;
+public class RunPayloadC2S extends PayloadBase<RunPayloadC2S> {
 
-public record RunPayloadC2S(String path, int tickEnd, boolean isSingleThread) implements CustomPayload {
-
-    public static final Id<RunPayloadC2S> ID = new Id<>(Identifier.of(MOD_ID, "tick_end"));
-    public static final PacketCodec<RegistryByteBuf, RunPayloadC2S> CODEC = new PacketCodec<>() {
+    public static final PayloadId<RunPayloadC2S> ID = new PayloadId<RunPayloadC2S>("tick_end", new PayloadCodec<RunPayloadC2S>() {
         @Override
-        public RunPayloadC2S decode(RegistryByteBuf buf) {
+        public RunPayloadC2S decode(PacketByteBuf buf) {
             return new RunPayloadC2S(buf.readString(), buf.readVarInt(), buf.readBoolean());
         }
 
         @Override
-        public void encode(RegistryByteBuf buf, RunPayloadC2S value) {
+        public void encode(PacketByteBuf buf, RunPayloadC2S value) {
             buf.writeString(value.path);
             buf.writeVarInt(value.tickEnd);
             buf.writeBoolean(value.isSingleThread);
         }
-    };
+    });
 
-    @Override
-    public Id<RunPayloadC2S> getId() {
-        return ID;
+    public String path;
+    public int tickEnd;
+    public boolean isSingleThread;
+
+    public RunPayloadC2S(String path, int tickEnd, boolean isSingleThread) {
+        this.path = path;
+        this.tickEnd = tickEnd;
+        this.isSingleThread = isSingleThread;
     }
 
+    @Override
+    public PayloadId<RunPayloadC2S> getPayloadId() {
+        return ID;
+    }
 }

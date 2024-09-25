@@ -1,21 +1,32 @@
 package yancey.openparticle.core.network;
 
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.PacketByteBuf;
+import yancey.openparticle.core.versions.PayloadBase;
+import yancey.openparticle.core.versions.PayloadCodec;
+import yancey.openparticle.core.versions.PayloadId;
 
-import static yancey.openparticle.core.OpenParticle.MOD_ID;
+public class LoadPayloadS2C extends PayloadBase<LoadPayloadS2C> {
 
-public record LoadPayloadS2C(String path) implements CustomPayload {
+    public static final PayloadId<LoadPayloadS2C> ID = new PayloadId<LoadPayloadS2C>("load_project", new PayloadCodec<LoadPayloadS2C>() {
+        @Override
+        public LoadPayloadS2C decode(PacketByteBuf buf) {
+            return new LoadPayloadS2C(buf.readString());
+        }
 
-    public static final CustomPayload.Id<LoadPayloadS2C> ID = new CustomPayload.Id<>(Identifier.of(MOD_ID, "load_project"));
-    public static final PacketCodec<RegistryByteBuf, LoadPayloadS2C> CODEC =
-            PacketCodec.tuple(PacketCodecs.STRING, LoadPayloadS2C::path, LoadPayloadS2C::new);
+        @Override
+        public void encode(PacketByteBuf buf, LoadPayloadS2C value) {
+            buf.writeString(value.path);
+        }
+    });
+
+    public String path;
+
+    public LoadPayloadS2C(String path) {
+        this.path = path;
+    }
 
     @Override
-    public Id<LoadPayloadS2C> getId() {
+    public PayloadId<LoadPayloadS2C> getPayloadId() {
         return ID;
     }
 }
