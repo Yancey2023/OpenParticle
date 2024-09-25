@@ -50,13 +50,17 @@ dependencies {
             "fabric-api-base",
             "fabric-networking-v0",
             "fabric-command-api-v1",
-            "fabric-renderer-registries-v1",
+            "fabric-rendering-v1",
             "fabric-lifecycle-events-v1",
             "fabric-keybindings-v0",
         )
         if (mcVersion >= 11604) {
             fabricApiModules.remove("fabric-networking-v0")
             fabricApiModules.add("fabric-networking-api-v1")
+        }
+        if (mcVersion >= 17000) {
+            fabricApiModules.remove("fabric-rendering-v1")
+            fabricApiModules.add("fabric-renderer-registries-v1")
         }
         if (mcVersion >= 19000) {
             fabricApiModules.remove("fabric-command-api-v1")

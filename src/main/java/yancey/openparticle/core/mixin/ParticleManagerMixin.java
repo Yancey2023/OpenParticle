@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import yancey.openparticle.core.client.core.OpenParticleClientCore;
 
-//#if MC<11900
+//#if MC<12005
 //$$ import net.minecraft.client.util.math.MatrixStack;
 //#endif
 
@@ -27,7 +27,7 @@ public abstract class ParticleManagerMixin {
 
     @Inject(method = "renderParticles", at = @At(value = "HEAD"))
     private void injectRenderParticles(
-            //#if MC<11900
+            //#if MC<12005
             //$$ MatrixStack matrices,
             //$$ VertexConsumerProvider.Immediate vertexConsumers,
             //#endif
@@ -36,17 +36,42 @@ public abstract class ParticleManagerMixin {
             float tickDelta,
             CallbackInfo ci
     ) {
+        //#if MC>=12005
         lightmapTextureManager.enable();
         RenderSystem.enableDepthTest();
-        //#if MC<11900
+        RenderSystem.setShader(GameRenderer::getParticleProgram);
+        //#elseif MC>=11904
+        //$$ lightmapTextureManager.enable();
+        //$$ RenderSystem.enableDepthTest();
+        //$$ RenderSystem.setShader(GameRenderer::getParticleProgram);
         //$$ MatrixStack matrixStack = RenderSystem.getModelViewStack();
         //$$ matrixStack.push();
         //$$ matrixStack.multiplyPositionMatrix(matrices.peek().getPositionMatrix());
         //$$ RenderSystem.applyModelViewMatrix();
+        //$$ RenderSystem.setShader(GameRenderer::getParticleProgram);
+        //#elseif MC>=11700
+        //$$ lightmapTextureManager.enable();
+        //$$ RenderSystem.enableDepthTest();
+        //$$ RenderSystem.setShader(GameRenderer::getParticleProgram);
+        //$$ MatrixStack matrixStack = RenderSystem.getModelViewStack();
+        //$$ matrixStack.push();
+        //$$ matrixStack.multiplyPositionMatrix(matrices.peek().getPositionMatrix());
+        //$$ RenderSystem.applyModelViewMatrix();
+        //$$ RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        //$$ RenderSystem.setShader(GameRenderer::getParticleProgram);
+        //#else
+        //$$ lightmapTextureManager.enable();
+        //$$ RenderSystem.enableAlphaTest();
+        //$$ RenderSystem.defaultAlphaFunc();
+        //$$ RenderSystem.enableDepthTest();
+        //$$ RenderSystem.enableFog();
+        //$$ RenderSystem.pushMatrix();
+        //$$ RenderSystem.multMatrix(matrices.peek().getModel());
+        //$$ RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
         //#endif
 
-        RenderSystem.setShader(GameRenderer::getParticleProgram);
         Tessellator tessellator = Tessellator.getInstance();
+
         //#if MC>=12100
         BufferBuilder bufferBuilder = ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT.begin(tessellator, textureManager);
         //#else
@@ -70,13 +95,25 @@ public abstract class ParticleManagerMixin {
             //#endif
         }
 
-        //#if MC<11900
-        //$$ matrixStack.pop();
-        //$$ RenderSystem.applyModelViewMatrix();
-        //#endif
+        //#if MC>=12005
         RenderSystem.depthMask(true);
         RenderSystem.disableBlend();
         lightmapTextureManager.disable();
+        //#elseif MC>=17000
+        //$$ matrixStack.pop();
+        //$$ RenderSystem.applyModelViewMatrix();
+        //$$ RenderSystem.depthMask(true);
+        //$$ RenderSystem.disableBlend();
+        //$$ lightmapTextureManager.disable();
+        //$$else
+        //$$ RenderSystem.popMatrix();
+        //$$ RenderSystem.depthMask(true);
+        //$$ RenderSystem.depthFunc(515);
+        //$$ RenderSystem.disableBlend();
+        //$$ RenderSystem.defaultAlphaFunc();
+        //$$ lightmapTextureManager.disable();
+        //$$ RenderSystem.disableFog();
+        //#endif
     }
 
     @Inject(method = "tick", at = @At(value = "RETURN"))

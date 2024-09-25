@@ -24,6 +24,7 @@ import yancey.openparticle.core.versions.TextUtil;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -164,7 +165,7 @@ public class OpenParticleClientCore {
             openParticleProject.close();
             openParticleProject = null;
         }
-        if (!Files.exists(Path.of(path))) {
+        if (!Files.exists(FileSystems.getDefault().getPath(path))) {
             MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(TextUtil.empty()
                     .append(TextUtil.literal("粒子文件加载失败(找不到文件: ").formatted(Formatting.RED))
                     .append(TextUtil.literal(path).formatted(Formatting.LIGHT_PURPLE))
