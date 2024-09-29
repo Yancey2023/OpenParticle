@@ -2,7 +2,7 @@ import os
 import shutil
 
 modId = 'openparticle'
-modVersion = '2.8'
+modVersion = '2.9'
 mcVersions = [
     "1.16-fabric",
     "1.16.1-fabric",

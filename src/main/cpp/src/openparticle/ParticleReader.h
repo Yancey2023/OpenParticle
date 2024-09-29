@@ -95,7 +95,7 @@ namespace OpenParticle {
     template<bool isSmallEndian>
     int32_t readColor(DataReader<isSmallEndian> &dataReader) {
         int32_t rgba = dataReader.readInt();
-        return rgba << 8 | (rgba >> 24 & 0x000000FF);
+        return rgba << 24 | (rgba >> 8 & 0x00FFFFFF);
     }
 
     template<bool isSmallEndian>
