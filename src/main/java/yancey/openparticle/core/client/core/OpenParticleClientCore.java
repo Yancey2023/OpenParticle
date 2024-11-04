@@ -11,7 +11,6 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameRules;
 
 import yancey.openparticle.api.common.nativecore.OpenParticleProject;
 import yancey.openparticle.core.events.RunningEventManager;
@@ -26,7 +25,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -87,13 +85,11 @@ public class OpenParticleClientCore {
             boolean isSuccess = loadFile0(path);
             long timeEnd = System.currentTimeMillis();
             if (isSuccess && client.world != null) {
-                if (client.world.getGameRules().getBoolean(GameRules.COMMAND_BLOCK_OUTPUT)) {
-                    client.inGameHud.getChatHud().addMessage(TextUtil.empty()
-                            .append(TextUtil.literal("粒子文件加载成功(耗时"))
-                            .append(TextUtil.literal((timeEnd - timeStart) + "ms").formatted(Formatting.AQUA))
-                            .append(TextUtil.literal(")"))
-                    );
-                }
+                client.inGameHud.getChatHud().addMessage(TextUtil.empty()
+                        .append(TextUtil.literal("粒子文件加载成功(耗时"))
+                        .append(TextUtil.literal((timeEnd - timeStart) + "ms").formatted(Formatting.AQUA))
+                        .append(TextUtil.literal(")"))
+                );
             }
             return isSuccess;
         } finally {

@@ -1,6 +1,7 @@
 package yancey.openparticle.core.network;
 
 import net.minecraft.network.PacketByteBuf;
+import org.jetbrains.annotations.NotNull;
 import yancey.openparticle.core.versions.PayloadBase;
 import yancey.openparticle.core.versions.PayloadCodec;
 import yancey.openparticle.core.versions.PayloadId;
@@ -26,7 +27,7 @@ public class LoadPayloadS2C extends PayloadBase<LoadPayloadS2C> {
     }
 
     @Override
-    public PayloadId<LoadPayloadS2C> getPayloadId() {
+    public @NotNull PayloadId<LoadPayloadS2C> getPayloadId() {
         return ID;
     }
 }

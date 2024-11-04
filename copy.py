@@ -29,6 +29,8 @@ mcVersions = [
     "1.20.6-fabric",
     "1.21-fabric",
     "1.21.1-fabric"
+    "1.21.2-fabric"
+    "1.21.3-fabric"
 ]
 
 release_dest = "./build/libs/release"

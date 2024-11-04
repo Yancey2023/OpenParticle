@@ -23,8 +23,6 @@
     "openparticle.mixins.json"
   ],
   "depends": {
-    "fabricloader": "*",
-    "fabric": "*",
     "minecraft": "1.19"
   }
 }

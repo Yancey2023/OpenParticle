@@ -41,7 +41,6 @@ public class CommandPar {
         } else if (isRun) {
             boolean isSingleThread = !isHasSingleThread || BoolArgumentType.getBool(context, "isSingleThread");
             OpenParticleServerCore.run(context.getSource().getServer(), isSingleThread);
-            return 3;
         }
         return Command.SINGLE_SUCCESS;
     }

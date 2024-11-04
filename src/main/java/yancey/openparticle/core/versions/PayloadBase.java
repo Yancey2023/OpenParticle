@@ -1,5 +1,6 @@
 package yancey.openparticle.core.versions;
 
+import org.jetbrains.annotations.NotNull;
 //#if MC>=12005
 import net.minecraft.network.packet.CustomPayload;
 //#endif
@@ -10,7 +11,7 @@ public abstract class PayloadBase<SELF extends PayloadBase<SELF>>
         //#endif
 {
 
-    public abstract PayloadId<SELF> getPayloadId();
+    public abstract @NotNull PayloadId<SELF> getPayloadId();
 
     //#if MC>=12005
     @Override

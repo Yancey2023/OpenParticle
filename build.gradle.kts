@@ -37,7 +37,9 @@ val fabricApiVersion = when (mcVersion) {
     12005 -> "0.97.8+1.20.5"
     12006 -> "0.100.8+1.20.6"
     12100 -> "0.102.0+1.21"
-    12101 -> "0.105.0+1.21.1"
+    12101 -> "0.107.0+1.21.1"
+    12102 -> "0.106.1+1.21.2"
+    12103 -> "0.107.0+1.21.3"
     else -> throw UnsupportedOperationException()
 }
 
@@ -58,11 +60,11 @@ dependencies {
             fabricApiModules.remove("fabric-networking-v0")
             fabricApiModules.add("fabric-networking-api-v1")
         }
-        if (mcVersion >= 17000) {
+        if (mcVersion >= 11700) {
             fabricApiModules.remove("fabric-rendering-v1")
             fabricApiModules.add("fabric-renderer-registries-v1")
         }
-        if (mcVersion >= 19000) {
+        if (mcVersion >= 11900) {
             fabricApiModules.remove("fabric-command-api-v1")
             fabricApiModules.add("fabric-command-api-v2")
         }

@@ -36,10 +36,13 @@ public abstract class ParticleManagerMixin {
             float tickDelta,
             CallbackInfo ci
     ) {
-        //#if MC>=12005
+        //#if MC>=12102
         lightmapTextureManager.enable();
         RenderSystem.enableDepthTest();
-        RenderSystem.setShader(GameRenderer::getParticleProgram);
+        //#elseif MC>=12005
+        //$$ lightmapTextureManager.enable();
+        //$$ RenderSystem.enableDepthTest();
+        //$$ RenderSystem.setShader(GameRenderer::getParticleProgram);
         //#elseif MC>=11904
         //$$ lightmapTextureManager.enable();
         //$$ RenderSystem.enableDepthTest();
@@ -85,7 +88,7 @@ public abstract class ParticleManagerMixin {
             if (builtBuffer != null) {
                 BufferRenderer.drawWithGlobalProgram(builtBuffer);
             }
-            //#elseif MC>=19000
+            //#elseif MC>=11900
             //$$ BufferBuilder.BuiltBuffer builtBuffer = bufferBuilder.endNullable();
             //$$ if (builtBuffer != null) {
             //$$     BufferRenderer.drawWithGlobalProgram(builtBuffer);
@@ -99,13 +102,13 @@ public abstract class ParticleManagerMixin {
         RenderSystem.depthMask(true);
         RenderSystem.disableBlend();
         lightmapTextureManager.disable();
-        //#elseif MC>=17000
+        //#elseif MC>=11700
         //$$ matrixStack.pop();
         //$$ RenderSystem.applyModelViewMatrix();
         //$$ RenderSystem.depthMask(true);
         //$$ RenderSystem.disableBlend();
         //$$ lightmapTextureManager.disable();
-        //$$else
+        //#else
         //$$ RenderSystem.popMatrix();
         //$$ RenderSystem.depthMask(true);
         //$$ RenderSystem.depthFunc(515);

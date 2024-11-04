@@ -10,7 +10,7 @@ import yancey.openparticle.core.network.*;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 //#endif
 
-//#if MC>=19000
+//#if MC>=11900
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 //#else
 //$$ import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
@@ -35,7 +35,7 @@ public class OpenParticle implements ModInitializer {
         RunPayloadC2S.ID.registerServerGlobalReceiver((payload, server, player) ->
                 OpenParticleServerCore.run(player.server, payload.path, payload.tickEnd, payload.isSingleThread));
         KeyboardManager.init(false);
-        //#if MC>=19000
+        //#if MC>=11900
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> CommandPar.register(dispatcher));
         //#else
         //$$ CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> CommandPar.register(dispatcher));
