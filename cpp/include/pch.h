@@ -10,6 +10,7 @@
 #include <istream>
 #include <optional>
 #include <cstdint>
+#include <bit>
 #include <memory>
 #include <fstream>
 #include <future>

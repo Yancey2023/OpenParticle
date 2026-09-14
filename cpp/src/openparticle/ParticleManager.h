@@ -30,19 +30,8 @@ namespace OpenParticle {
             if (!istream.is_open()) {
                 throw std::runtime_error("fail to open file");
             }
-            union {
-                int32_t int32 = 0x01020304;
-                int8_t int8;
-            } data;
-            if (data.int8 == 0x04) [[likely]] {
-                DataReader<true> dataReader(istream);
-                particleData = new ParticleData(dataReader, setSprite);
-            } else if (data.int8 == 0x01) {
-                DataReader<false> dataReader(istream);
-                particleData = new ParticleData(dataReader, setSprite);
-            } else {
-                throw std::runtime_error("unknown byte order");
-            }
+            DataReader dataReader(istream);
+            particleData = new ParticleData(dataReader, setSprite);
             istream.close();
             particleTicker = new ParticleTicker(particleData);
             int32_t tickEnd = getTickEnd();

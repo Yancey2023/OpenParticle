@@ -85,23 +85,10 @@ int test2() {
     start = std::chrono::high_resolution_clock::now();
     std::ifstream istream(path, std::ios::in | std::ios::binary);
     OpenParticle::ParticleData *particleData;
-    union {
-        int32_t int32 = 0x01020304;
-        int8_t int8;
-    } data;
-    if (data.int8 == 0x04) [[likely]] {
-        OpenParticle::DataReader<true> dataReader(istream);
-        particleData = new OpenParticle::ParticleData(dataReader, [](OpenParticle::Identifier &identifier) {
-            identifier.sprites.push_back(OpenParticle::Sprite{0.1, 0.2, 0.3, 0.4});
-        });
-    } else if (data.int8 == 0x01) {
-        OpenParticle::DataReader<false> dataReader(istream);
-        particleData = new OpenParticle::ParticleData(dataReader, [](OpenParticle::Identifier &identifier) {
-            identifier.sprites.push_back(OpenParticle::Sprite{0.1, 0.2, 0.3, 0.4});
-        });
-    } else {
-        throw std::runtime_error("unknown byte order");
-    }
+    OpenParticle::DataReader dataReader(istream);
+    particleData = new OpenParticle::ParticleData(dataReader, [](OpenParticle::Identifier &identifier) {
+        identifier.sprites.push_back(OpenParticle::Sprite{0.1, 0.2, 0.3, 0.4});
+    });
     istream.close();
     auto *particleTicker = new OpenParticle::ParticleTicker(particleData);
     end = std::chrono::high_resolution_clock::now();
