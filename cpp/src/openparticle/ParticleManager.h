@@ -6,6 +6,14 @@
 #define OPENPARTICLE_PARTICLEMANAGER_H
 
 #include "ParticleRender.h"
+#include <array>
+#include <cstdint>
+#include <fstream>
+#include <functional>
+#include <future>
+#include <optional>
+#include <stdexcept>
+#include <vector>
 
 namespace OpenParticle {
 

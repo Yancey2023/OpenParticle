@@ -3,6 +3,15 @@
 //
 
 #include "ParticleReader.h"
+#include <cstdint>
+#include <memory>
+#include <optional>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include <Eigen/Core>
 
 namespace OpenParticle {
 

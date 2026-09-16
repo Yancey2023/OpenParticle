@@ -6,6 +6,10 @@
 #define OPENPARTICLE_PARTICLERENDER_H
 
 #include "ParticleTicker.h"
+#include <cstddef>
+#include <cstdint>
+#include <optional>
+#include <vector>
 
 namespace OpenParticle::ParticleRender {
 

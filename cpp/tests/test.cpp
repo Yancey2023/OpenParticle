@@ -1,12 +1,10 @@
-#ifdef __GNUC__
-#ifndef _GLIBCXX_HAS_GTHREADS
-#error you maybe forget add -pthread param when compiling in linux
-#endif
-#endif
-
-#include "../openparticle/ParticleManager.h"
+#include "openparticle/ParticleManager.h"
 #include <chrono>
+#include <cstdint>
+#include <cstdio>
+#include <fstream>
 #include <iostream>
+#include <string>
 #include <thread>
 
 int test1() {

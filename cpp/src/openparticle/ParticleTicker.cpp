@@ -3,6 +3,15 @@
 //
 
 #include "ParticleTicker.h"
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <optional>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+#include <Eigen/Core>
 
 #if OpenParticleDebug == true
 #define ASSERT_NOTNULL(ptr) \

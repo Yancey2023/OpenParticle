@@ -3,6 +3,16 @@
 //
 
 #include "ParticleRender.h"
+#include <cstddef>
+#include <cstdint>
+#include <future>
+#include <optional>
+#include <stdexcept>
+#include <thread>
+#include <vector>
+
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 namespace OpenParticle::ParticleRender {
 

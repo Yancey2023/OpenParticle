@@ -5,6 +5,23 @@
 #ifndef OPENPARTICLE_PARTICLE_H
 #define OPENPARTICLE_PARTICLE_H
 
+#include <bit>
+#include <cstdint>
+#include <functional>
+#include <istream>
+#include <memory>
+#include <optional>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+#include <Eigen/Core>
+
+// Compile-time debug switch, override with -DOpenParticleDebug=true if needed.
+#ifndef OpenParticleDebug
+#define OpenParticleDebug false
+#endif
+
 namespace OpenParticle {
 
     class DataReader {

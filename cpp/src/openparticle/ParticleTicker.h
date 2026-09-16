@@ -6,7 +6,12 @@
 #define OPENPARTICLE_PARTICLETICKER_H
 
 #include "ParticleReader.h"
-#include "pch.h"
+#include <cstddef>
+#include <cstdint>
+#include <optional>
+#include <vector>
+
+#include <Eigen/Core>
 
 namespace OpenParticle {
 

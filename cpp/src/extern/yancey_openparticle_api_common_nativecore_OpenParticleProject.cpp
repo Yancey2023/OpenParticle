@@ -1,11 +1,8 @@
-#ifdef __GNUC__
-#ifndef _GLIBCXX_HAS_GTHREADS
-#error you maybe forget add -pthread param when compiling in linux
-#endif
-#endif
-
 #include "yancey_openparticle_api_common_nativecore_OpenParticleProject.h"
 #include "../openparticle/ParticleManager.h"
+#include <cstddef>
+#include <cstdint>
+#include <exception>
 
 const int cacheSize = 20;
 
@@ -82,4 +79,10 @@ void Java_yancey_openparticle_api_common_nativecore_OpenParticleProject_render__
                                                                                             jfloat cameraX, jfloat cameraY, jfloat cameraZ,
                                                                                             jfloat rx, jfloat ry, jfloat rz, jfloat rw) {
     reinterpret_cast<OpenParticle::ParticleManager<cacheSize> *>(particleManagerPointer)->doRender(isSingleThread, reinterpret_cast<uint8_t *>(bufferPointer), tickDelta, cameraX, cameraY, cameraZ, rx, ry, rz, rw);
+}
+
+extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *, void *) {
+    // Keep the required JNI version as low as possible: this library only uses
+    // JNI 1.6 APIs, so it can be loaded by any JVM supporting JNI 1.6 or newer.
+    return JNI_VERSION_1_6;
 }

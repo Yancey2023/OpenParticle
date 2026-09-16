@@ -15,10 +15,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Eigen3)
 
+# Use the JNI headers bundled with the local JDK instead of vendoring them.
+find_package(JNI REQUIRED)
+
 if (MSVC)
     add_compile_options("/utf-8")
 endif ()
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 set(OpenParticleCoreFiles
@@ -32,13 +36,8 @@ add_library(OpenParticle SHARED
         src/extern/yancey_openparticle_api_common_nativecore_OpenParticleProject.h
         ${OpenParticleCoreFiles}
 )
-target_include_directories(OpenParticle PRIVATE jni src)
-target_link_libraries(OpenParticle PRIVATE Eigen3::Eigen Threads::Threads)
-if (CMAKE_SYSTEM_NAME MATCHES "Linux")
-    target_include_directories(OpenParticle PRIVATE jni/linux)
-elseif (CMAKE_SYSTEM_NAME MATCHES "Windows")
-    target_include_directories(OpenParticle PRIVATE jni/win32)
-endif ()
+target_include_directories(OpenParticle PRIVATE src)
+target_link_libraries(OpenParticle PRIVATE Eigen3::Eigen Threads::Threads JNI::JNI)
 
 add_executable(OpenParticleTest
         tests/test.cpp
